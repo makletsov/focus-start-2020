@@ -16,12 +16,10 @@ public class DashedMarkup extends Markup {
     public DashedMarkup(int tableSize) {
         super(tableSize);
 
-        StringBuilder builder = new StringBuilder();
+        String regCell = getRegularCellBottomBorder(getCellWidth());
 
-        String regCell = getRegularCellBottomBorder(getCellWidth(), builder);
-
-        rowsDivider = getRowsDivider(getSidebarWidth(), getTableSize(), regCell, builder);
-        prefixes = getPrefixes(getCellWidth(), builder);
+        rowsDivider = getRowsDivider(getSidebarWidth(), getTableSize(), regCell);
+        prefixes = getPrefixes(getCellWidth());
     }
 
     @Override
@@ -43,7 +41,7 @@ public class DashedMarkup extends Markup {
         return prefixes.get(width);
     }
 
-    private String getRegularCellBottomBorder(int width, StringBuilder builder) {
+    private String getRegularCellBottomBorder(int width) {
         builder.setLength(0);
 
         builder.append(CROSS_UNIT);
@@ -55,7 +53,7 @@ public class DashedMarkup extends Markup {
         return builder.toString();
     }
 
-    private String getRowsDivider(int sidebarWidth, int columnsCount, String regularCellBottomBorder, StringBuilder builder) {
+    private String getRowsDivider(int sidebarWidth, int columnsCount, String regularCellBottomBorder) {
         builder.setLength(0);
 
         IntStream.range(0, sidebarWidth)
@@ -70,7 +68,7 @@ public class DashedMarkup extends Markup {
         return builder.toString();
     }
 
-    private Map<Integer, String> getPrefixes(int regCellWidth, StringBuilder builder) {
+    private Map<Integer, String> getPrefixes(int regCellWidth) {
         Map<Integer, String> result = new HashMap<>();
 
         builder.setLength(0);
