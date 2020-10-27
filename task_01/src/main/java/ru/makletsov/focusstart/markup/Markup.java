@@ -3,66 +3,59 @@ package ru.makletsov.focusstart.markup;
 import java.util.stream.IntStream;
 
 public abstract class Markup {
-    private final int tableSize;
-    protected final StringBuilder builder = new StringBuilder();
-
-    private static final int MINIMAL_TABLE_FACTOR = 1;
-    private static final int MAXIMAL_TABLE_FACTOR = 32;
     private static final int HEADERS_MULTIPLIER = 1;
 
+    private final int tableSize;
+    private final int sidebarWidth;
+    private final int cellWidth;
+
+    protected final StringBuilder builder = new StringBuilder();
+
     protected Markup(int tableSize) {
-        if (tableSize < MINIMAL_TABLE_FACTOR) {
-            throw new IllegalArgumentException("The given number is less than 1.");
-        }
-
-        if (tableSize > MAXIMAL_TABLE_FACTOR) {
-            throw new IllegalArgumentException("The given number is greater than 32.");
-        }
-
         this.tableSize = tableSize;
+        this.sidebarWidth = String.valueOf(tableSize).length();
+        this.cellWidth = String.valueOf(tableSize * tableSize).length();
     }
 
     public int getSidebarWidth() {
-        return getNumberWidth(tableSize);
+        return sidebarWidth;
     }
 
     public int getCellWidth() {
-        return getNumberWidth(tableSize * tableSize);
+        return cellWidth;
     }
 
     public int getTableSize() {
         return tableSize;
     }
 
-    public int getIndentWidth(int number, int cellWidth) {
-        int numberWidth = getNumberWidth(number);
+    public String buildTable(int size) {
+        StringBuilder stringBuilder = new StringBuilder();
 
-        if (cellWidth - numberWidth < 0) {
-            throw new IllegalArgumentException("The given cell's width is less than the number width.");
-        }
+        stringBuilder.append(getHeader(size))
+                .append(System.lineSeparator());
 
-        return cellWidth - numberWidth;
+        IntStream.range(1, size + 1)
+                .forEach(multiplier ->
+                        stringBuilder.append(getRow(multiplier, size))
+                                .append(System.lineSeparator()));
+
+        return stringBuilder.toString();
     }
 
     public String getHeader(int columnsCount) {
-        return getRow(columnsCount, HEADERS_MULTIPLIER, true);
+        return getRow(HEADERS_MULTIPLIER, columnsCount, true);
     }
 
-    public String getRow(int columnsCount, int rowNumber) {
-        return getRow(columnsCount, rowNumber, false);
+    public String getRow(int rowNumber, int columnsCount) {
+        return getRow(rowNumber, columnsCount, false);
     }
 
-    public abstract String getVerticalDivider();
-
-    public abstract String getHorizontalDivider();
-
-    public abstract String getPrefix(int width);
-
-    private String getRow(int cellsCount, int rowNumber, boolean isHeader) {
+    private String getRow(int rowNumber, int cellsCount, boolean isHeader) {
         builder.setLength(0);
 
         addSidebarCell(rowNumber, isHeader);
-        addRegularCells(cellsCount, rowNumber);
+        addRegularCells(rowNumber, cellsCount);
 
         builder.append(System.lineSeparator())
                 .append(getHorizontalDivider());
@@ -71,7 +64,9 @@ public abstract class Markup {
     }
 
     private void addSidebarCell(int rowNumber, boolean isHeader) {
-        int sidebarPrefixWidth = getIndentWidth(rowNumber, getSidebarWidth());
+        int numberWidth = String.valueOf(rowNumber).length();
+
+        int sidebarPrefixWidth = sidebarWidth - numberWidth;
         int sidebarWidth = getSidebarWidth();
 
         if (isHeader) {
@@ -82,27 +77,24 @@ public abstract class Markup {
         }
     }
 
-    private void addRegularCells(int cellsCount, int rowNumber) {
+    private void addRegularCells(int rowNumber, int cellsCount) {
         IntStream.range(1, cellsCount + 1)
                 .map(v -> v * rowNumber)
                 .forEach(v -> {
-                    int indent = getIndentWidth(v, getCellWidth());
+                    String numberStringValue = String.valueOf(v);
+
+                    int numberWidth = numberStringValue.length();
+                    int indent = cellWidth - numberWidth;
 
                     builder.append(getVerticalDivider())
                             .append(getPrefix(indent))
-                            .append(v);
+                            .append(numberStringValue);
                 });
     }
 
-    private int getNumberWidth(int number) {
-        int temp = Math.abs(number);
-        int res = (number >= 0) ? 1 : 2;
+    public abstract String getVerticalDivider();
 
-        while (temp / 10 > 0) {
-            res++;
-            temp /= 10;
-        }
+    public abstract String getHorizontalDivider();
 
-        return res;
-    }
+    public abstract String getPrefix(int width);
 }

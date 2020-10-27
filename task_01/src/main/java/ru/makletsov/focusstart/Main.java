@@ -4,62 +4,69 @@ import ru.makletsov.focusstart.markup.DashedMarkup;
 import ru.makletsov.focusstart.markup.Markup;
 
 import java.util.Scanner;
-import java.util.stream.IntStream;
 
 public class Main {
-    private static final int MINIMAL_TABLE_FACTOR = 1;
-    private static final int MAXIMAL_TABLE_FACTOR = 32;
+    private static final int MINIMAL_TABLE_SIZE = 1;
+    private static final int MAXIMAL_TABLE_SIZE = 32;
     private static final int ATTEMPTS_COUNT = 5;
     private static final String POSITIVE_NUMBER_REGEXP = "^\\d+$";
 
-    public static void main(String[] args) {
-        int number = getTableFactor();
+    private static final String INITIAL_PROMPT = "Введите размер таблицы умножения от " +
+            MINIMAL_TABLE_SIZE + " до " + MAXIMAL_TABLE_SIZE + ":";
 
-        if (number <= 0) {
+    public static void main(String[] args) {
+        int tableSize = getTableSize();
+
+        if (tableSize <= 0) {
             System.out.println("У вас не осталось попыток!");
         } else {
-            StringBuilder stringBuilder = new StringBuilder();
-            Markup markup = new DashedMarkup(number);
+            Markup markup = new DashedMarkup(tableSize);
 
-            buildTable(number, markup, stringBuilder);
+            String table = markup.buildTable(tableSize);
 
-            System.out.println(stringBuilder.toString());
+            System.out.println(table);
         }
     }
 
-    private static int getTableFactor() {
-        Scanner scanner = new Scanner(System.in);
+    private static int getTableSize() {
+        System.out.println(INITIAL_PROMPT);
 
-        System.out.println("Введите размер таблицы умножения от " +
-                MINIMAL_TABLE_FACTOR + " до " + MAXIMAL_TABLE_FACTOR + ":");
-        String input = scanner.next();
-
-        int number = 0;
+        int currentValue = -1;
         int remainingAttempts = ATTEMPTS_COUNT;
 
-        while (!input.matches(POSITIVE_NUMBER_REGEXP)
-                || (number = Integer.parseInt(input)) > MAXIMAL_TABLE_FACTOR
-                || number < MINIMAL_TABLE_FACTOR) {
+        Scanner scanner = new Scanner(System.in);
+        String input = scanner.next();
+
+        while (true) {
+            if (input.matches(POSITIVE_NUMBER_REGEXP)) {
+                currentValue = Integer.parseInt(input);
+
+                if (isAllowed(currentValue)) {
+                    break;
+                }
+
+                currentValue = -1;
+            }
+
             if (remainingAttempts <= 0) {
                 break;
             }
 
-            System.out.println("(" + remainingAttempts + ") Введите натуральное число от " +
-                    MINIMAL_TABLE_FACTOR + " до " + MAXIMAL_TABLE_FACTOR + "!");
+            System.out.println(getRepeatedPrompt(remainingAttempts));
+
             input = scanner.next();
             remainingAttempts--;
         }
 
-        return number;
+        return currentValue;
     }
 
-    private static void buildTable(int number, Markup markup, StringBuilder stringBuilder) {
-        stringBuilder.append(markup.getHeader(number))
-                .append(System.lineSeparator());
+    private static String getRepeatedPrompt(int attemptsCount) {
+        return "(" + attemptsCount + ") Введите натуральное число от " +
+                MINIMAL_TABLE_SIZE + " до " + MAXIMAL_TABLE_SIZE + "!";
+    }
 
-        IntStream.range(1, number + 1)
-                .forEach(multiplier -> stringBuilder
-                        .append(markup.getRow(number, multiplier))
-                        .append(System.lineSeparator()));
+    private static boolean isAllowed(int number) {
+        return number >= MINIMAL_TABLE_SIZE && number <= MAXIMAL_TABLE_SIZE;
     }
 }

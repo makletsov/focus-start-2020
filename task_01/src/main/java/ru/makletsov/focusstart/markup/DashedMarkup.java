@@ -5,13 +5,13 @@ import java.util.Map;
 import java.util.stream.IntStream;
 
 public class DashedMarkup extends Markup {
+    private static final String VERTICAL_DIVIDER_UNIT = "|";
+    private static final String HORIZONTAL_DIVIDER_UNIT = "-";
+    private static final String CROSS_UNIT = "+";
+    private static final String BLANK_PLACE_UNIT = " ";
+
     private final String rowsDivider;
     private final Map<Integer, String> prefixes;
-
-    private final static char VERTICAL_DIVIDER_UNIT = '|';
-    private final static char HORIZONTAL_DIVIDER_UNIT = '-';
-    private final static char CROSS_UNIT = '+';
-    private final static char BLANK_PLACE_UNIT = ' ';
 
     public DashedMarkup(int tableSize) {
         super(tableSize);
@@ -22,33 +22,11 @@ public class DashedMarkup extends Markup {
         prefixes = getPrefixes(getCellWidth());
     }
 
-    @Override
-    public String getVerticalDivider() {
-        return String.valueOf(VERTICAL_DIVIDER_UNIT);
-    }
-
-    @Override
-    public String getHorizontalDivider() {
-        return rowsDivider;
-    }
-
-    @Override
-    public String getPrefix(int width) {
-        if (!prefixes.containsKey(width)) {
-            throw new IllegalArgumentException("Wrong value of prefix length " + width);
-        }
-
-        return prefixes.get(width);
-    }
-
     private String getRegularCellBottomBorder(int width) {
         builder.setLength(0);
 
-        builder.append(CROSS_UNIT);
-        IntStream.range(0, width)
-                .boxed()
-                .map(i -> HORIZONTAL_DIVIDER_UNIT)
-                .forEach(builder::append);
+        builder.append(CROSS_UNIT)
+                .append(HORIZONTAL_DIVIDER_UNIT.repeat(width));
 
         return builder.toString();
     }
@@ -56,14 +34,8 @@ public class DashedMarkup extends Markup {
     private String getRowsDivider(int sidebarWidth, int columnsCount, String regularCellBottomBorder) {
         builder.setLength(0);
 
-        IntStream.range(0, sidebarWidth)
-                .boxed()
-                .map(i -> HORIZONTAL_DIVIDER_UNIT)
-                .forEach(builder::append);
-        IntStream.range(0, columnsCount)
-                .boxed()
-                .map(i -> regularCellBottomBorder)
-                .forEach(builder::append);
+        builder.append(HORIZONTAL_DIVIDER_UNIT.repeat(sidebarWidth))
+                .append(regularCellBottomBorder.repeat(columnsCount));
 
         return builder.toString();
     }
@@ -80,5 +52,20 @@ public class DashedMarkup extends Markup {
                 });
 
         return result;
+    }
+
+    @Override
+    public String getVerticalDivider() {
+        return VERTICAL_DIVIDER_UNIT;
+    }
+
+    @Override
+    public String getHorizontalDivider() {
+        return rowsDivider;
+    }
+
+    @Override
+    public String getPrefix(int width) {
+        return prefixes.get(width);
     }
 }
