@@ -17,37 +17,37 @@ public abstract class Markup {
         this.cellWidth = String.valueOf(tableSize * tableSize).length();
     }
 
-    public int getSidebarWidth() {
+    protected int getSidebarWidth() {
         return sidebarWidth;
     }
 
-    public int getCellWidth() {
+    protected int getCellWidth() {
         return cellWidth;
     }
 
-    public int getTableSize() {
+    protected int getTableSize() {
         return tableSize;
     }
 
-    public String buildTable(int size) {
+    public String buildTable(/*int size*/) {
         StringBuilder stringBuilder = new StringBuilder();
 
-        stringBuilder.append(getHeader(size))
+        stringBuilder.append(getHeader(tableSize))
                 .append(System.lineSeparator());
 
-        IntStream.range(1, size + 1)
+        IntStream.range(1, tableSize + 1)
                 .forEach(multiplier ->
-                        stringBuilder.append(getRow(multiplier, size))
+                        stringBuilder.append(getRow(multiplier, tableSize))
                                 .append(System.lineSeparator()));
 
         return stringBuilder.toString();
     }
 
-    public String getHeader(int columnsCount) {
+    private String getHeader(int columnsCount) {
         return getRow(HEADERS_MULTIPLIER, columnsCount, true);
     }
 
-    public String getRow(int rowNumber, int columnsCount) {
+    private String getRow(int rowNumber, int columnsCount) {
         return getRow(rowNumber, columnsCount, false);
     }
 
@@ -92,9 +92,9 @@ public abstract class Markup {
                 });
     }
 
-    public abstract String getVerticalDivider();
+    protected abstract String getVerticalDivider();
 
-    public abstract String getHorizontalDivider();
+    protected abstract String getHorizontalDivider();
 
-    public abstract String getPrefix(int width);
+    protected abstract String getPrefix(int width);
 }

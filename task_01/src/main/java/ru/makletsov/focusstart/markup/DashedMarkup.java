@@ -55,17 +55,17 @@ public class DashedMarkup extends Markup {
     }
 
     @Override
-    public String getVerticalDivider() {
+    protected String getVerticalDivider() {
         return VERTICAL_DIVIDER_UNIT;
     }
 
     @Override
-    public String getHorizontalDivider() {
+    protected String getHorizontalDivider() {
         return rowsDivider;
     }
 
     @Override
-    public String getPrefix(int width) {
+    protected String getPrefix(int width) {
         return prefixes.get(width);
     }
 }
