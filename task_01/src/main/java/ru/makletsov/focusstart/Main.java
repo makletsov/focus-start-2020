@@ -26,7 +26,12 @@ public class Main {
             String table = markup.buildTable();
 
             Printer printer = new ConsolePrinter();
-            printer.print(table);
+
+            try {
+                printer.print(table);
+            } catch (Exception e) {
+                System.out.println("Печать не удалась!");
+            }
         }
     }
 
