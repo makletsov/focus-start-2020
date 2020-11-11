@@ -1,38 +1,55 @@
 package ru.makletsov.focusstart.shape;
 
-public class Triangle implements Shape {
-    private static final String TYPE = "Triangle";
+public class Triangle extends Shape {
+    private static final String TYPE_NAME = "Triangle";
+
+    private final double area;
+    private final double perimeter;
 
     private final double edge1;
     private final double edge2;
     private final double edge3;
+
+    private final double angle1;
+    private final double angle2;
+    private final double angle3;
+
     private final String infoPattern;
 
-    public Triangle(double edge1, double edge2, double edge3, String unit) {
+    public Triangle(String unit, double edge1, double edge2, double edge3) {
+        super(unit, TYPE_NAME);
+
         if (edge1 + edge2 < edge3 || edge2 + edge3 < edge1 || edge1 + edge3 < edge2) {
             throw new IllegalArgumentException("Cannot create triangle with given edges values.");
         }
 
+        perimeter = edge1 + edge2 + edge3 + 0.0;
+        area = Math.sqrt(getHalfPerimeter() * getHalfPerimeterMinusEdge(edge1)
+                * getHalfPerimeterMinusEdge(edge2) * getHalfPerimeterMinusEdge(edge3));
+
         this.edge1 = edge1;
         this.edge2 = edge2;
         this.edge3 = edge3;
-        this.infoPattern = "Shape's type : %s" +
-                "%nArea         : %.2f " + unit +
-                "2%nPerimeter    : %.2f " + unit +
-                "%nEdge1        : %.2f " + unit +
-                "%nAngle1       : %.2f grad." +
-                "%nEdge2        : %.2f " + unit +
-                "%nAngle2       : %.2f grad." +
-                "%nEdge3        : %.2f " + unit +
-                "%nAngle3       : %.2f grad.";
+
+        angle1 = getAngle(edge2, edge3, edge1);
+        angle2 = getAngle(edge1, edge3, edge2);
+        angle3 = getAngle(edge1, edge2, edge3);
+
+        this.infoPattern =
+                "Edge1        : " + FRACTIONAL_PLACEHOLDER + unit + LINE_SEPARATOR +
+                "Angle1       : " + FRACTIONAL_PLACEHOLDER + ANGLE_UNIT + LINE_SEPARATOR +
+                "Edge2        : " + FRACTIONAL_PLACEHOLDER + unit + LINE_SEPARATOR +
+                "Angle2       : " + FRACTIONAL_PLACEHOLDER + ANGLE_UNIT + LINE_SEPARATOR +
+                "Edge3        : " + FRACTIONAL_PLACEHOLDER + unit + LINE_SEPARATOR +
+                "Angle3       : " + FRACTIONAL_PLACEHOLDER + ANGLE_UNIT + LINE_SEPARATOR;
     }
 
-    private double getArea() {
-        return Math.sqrt(helper(0) * helper(edge1) * helper(edge2) * helper(edge3));
+    private double getHalfPerimeterMinusEdge(double edge) {
+        return perimeter / 2 - edge;
     }
 
-    private double helper(double edge) {
-        return getPerimeter() / 2 - edge;
+    private double getHalfPerimeter() {
+        return perimeter / 2;
     }
 
     private double getAngle(double adjacentEdge1, double adjacentEdge2, double oppositeEdge) {
@@ -40,15 +57,16 @@ public class Triangle implements Shape {
                 / (2 * adjacentEdge1 * adjacentEdge2 * 1.0)) / Math.PI * 180;
     }
 
-    private double getPerimeter() {
-        return edge1 + edge2 + edge3 + 0.0;
+    protected double getArea() {
+        return area;
+    }
+
+    protected double getPerimeter() {
+        return perimeter;
     }
 
     @Override
-    public String info() {
-        return String.format(infoPattern, TYPE, getArea(), getPerimeter(),
-                edge1, getAngle(edge2, edge3, edge1),
-                edge2, getAngle(edge1, edge3, edge2),
-                edge3, getAngle(edge1, edge2, edge3));
+    public String getInfo() {
+        return super.getInfo() + String.format(infoPattern, edge1, angle1, edge2, angle2, edge3, angle3);
     }
 }

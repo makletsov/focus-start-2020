@@ -1,34 +1,40 @@
 package ru.makletsov.focusstart.shape;
 
-public class Circle implements Shape {
-    private static final String TYPE = "Circle";
+public class Circle extends Shape {
+    private static final String TYPE_NAME = "Circle";
+
+    private final double area;
+    private final double perimeter;
 
     private final double radius;
+    private final double diameter;
+
     private final String infoPattern;
 
-    public Circle(double radius, String unit) {
+    public Circle(String unit, double radius) {
+        super(unit, TYPE_NAME);
+
+        area = Math.PI * Math.pow(radius, 2);
+        perimeter = 2 * Math.PI * radius;
+
         this.radius = radius;
-        this.infoPattern = "Shape's type : %s" +
-                        "%nArea         : %.2f " + unit +
-                        "2%nPerimeter    : %.2f " + unit +
-                        "%nRadius       : %.2f " + unit +
-                        "%nDiameter     : %.2f " + unit;
+        diameter = 2 * radius;
+
+        this.infoPattern =
+                        "Radius       : " + FRACTIONAL_PLACEHOLDER + unit + LINE_SEPARATOR +
+                        "Diameter     : " + FRACTIONAL_PLACEHOLDER + unit + LINE_SEPARATOR;
     }
 
-    private double getArea() {
-        return Math.PI * Math.pow(radius, 2);
+    protected double getArea() {
+        return area;
     }
 
-    private double getPerimeter() {
-        return 2 * Math.PI * radius;
-    }
-
-    private double getDiameter() {
-        return 2 * radius;
+    protected double getPerimeter() {
+        return perimeter;
     }
 
     @Override
-    public String info() {
-        return String.format(infoPattern, TYPE, getArea(), getPerimeter(), radius, getDiameter());
+    public String getInfo() {
+        return super.getInfo() + String.format(infoPattern, radius, diameter);
     }
 }

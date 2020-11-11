@@ -1,37 +1,30 @@
 package ru.makletsov.focusstart;
 
-import ru.makletsov.focusstart.shape.*;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Arrays;
+import ru.makletsov.focusstart.io.IOConfigurator;
+import ru.makletsov.focusstart.io.input.DefaultInputFactory;
+import ru.makletsov.focusstart.io.input.readers.InputReader;
+import ru.makletsov.focusstart.io.output.DefaultOutputFactory;
+import ru.makletsov.focusstart.io.output.writers.OutputWriter;
+import ru.makletsov.focusstart.shape.Shape;
+import ru.makletsov.focusstart.shape.ShapeCreator;
 
 public class Main {
-    public static final String UNIT = "m";
-    public static final String SHAPE_PARAMETERS_DELIMITER = " ";
+    private static final String UNIT = "m";
 
     public static void main(String[] args) {
-        try (ArgsHandler argsHandler = new ArgsHandler(args)) {
+        try {
+            IOConfigurator argsHandler = new IOConfigurator(args, new DefaultInputFactory(), new DefaultOutputFactory());
 
-            BufferedReader reader = argsHandler.getReader();
-            PrintWriter writer = argsHandler.getWriter();
+            InputReader inputReader = argsHandler.getInputReader();
+            OutputWriter outputWriter = argsHandler.getOutputWriter();
 
-            String shapeType = reader.readLine();
-            double[] shapeParameters = Arrays.stream(reader.readLine().split(SHAPE_PARAMETERS_DELIMITER))
-                    .mapToDouble(Double::parseDouble)
-                    .toArray();
+            Shape shape = ShapeCreator.getShape(inputReader.getShapeTypeString(), inputReader.getParameters(), UNIT);
 
-            Shape shape = ShapeCreator.getShape(shapeType, shapeParameters, UNIT);
-
-            writer.println(shape.info());
-            writer.flush();
-        } catch (IOException e) {
-            System.out.println("IO problem occurred: " + e.getMessage());
-        } catch (NumberFormatException e) {
-            System.out.println("Cannot parse number from input file. " + e.getMessage());
-        } catch (RuntimeException e) {
+            outputWriter.writeToOutput(shape.getInfo());
+        } catch (IllegalArgumentException e) {
             System.out.println("Incorrect input data: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Something unexpected has happened. Connect the support service!");
         }
     }
 }
