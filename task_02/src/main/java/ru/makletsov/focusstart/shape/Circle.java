@@ -1,25 +1,17 @@
 package ru.makletsov.focusstart.shape;
 
 public class Circle extends Shape {
-    private static final String TYPE_NAME = "Circle";
-
     private final double radius;
     private final double diameter;
 
-    private final String infoPattern;
-
     public Circle(ShapeType type, double radius) {
-        super(type, TYPE_NAME);
+        super(type);
 
         this.radius = radius;
 
         area = calculateArea(radius);
         perimeter = calculatePerimeter(radius);
         diameter = calculateDiameter(radius);
-
-        this.infoPattern =
-                        "Radius       : " + FRACTIONAL_PLACEHOLDER + UNIT + LINE_SEPARATOR +
-                        "Diameter     : " + FRACTIONAL_PLACEHOLDER + UNIT + LINE_SEPARATOR;
     }
 
     private static double calculateArea(double radius) {
@@ -34,8 +26,11 @@ public class Circle extends Shape {
         return 2 * radius;
     }
 
-    @Override
-    public String getInfo() {
-        return super.getInfo() + String.format(infoPattern, radius, diameter);
+    public double getRadius() {
+        return radius;
+    }
+
+    public double getDiameter() {
+        return diameter;
     }
 }

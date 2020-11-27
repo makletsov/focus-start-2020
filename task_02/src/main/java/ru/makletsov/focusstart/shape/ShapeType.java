@@ -1,7 +1,7 @@
 package ru.makletsov.focusstart.shape;
 
 public enum ShapeType {
-    CIRCLE(1) , RECTANGLE(2) , TRIANGLE(3);
+    CIRCLE(1), RECTANGLE(2), TRIANGLE(3);
 
     private final int paramsCount;
 

@@ -24,10 +24,11 @@ public class Main {
             List<Double> parameters = parser.getParameters();
 
             Shape shape = ShapeCreator.getShape(shapeType, parameters);
+            String formattedShape = ShapeFormatter.format(shape);
 
             OutputFactory
                     .getWriter(args[0], OUTPUT_SOURCE_PATH)
-                    .write(shape.getInfo());
+                    .write(formattedShape);
         } catch (IllegalArgumentException e) {
             System.out.println("Incorrect input data: " + e.getMessage());
         } catch (Exception e) {
@@ -37,8 +38,8 @@ public class Main {
 
     private static void checkArgsLength(String[] args) {
         if (args.length < 2) {
-            throw new IllegalArgumentException("Incorrect input arguments count: " +
-                    REQUIRED_ARGUMENTS_COUNT + " is required, but found " + args.length);
+            throw new IllegalArgumentException("Incorrect input arguments count - " +
+                    REQUIRED_ARGUMENTS_COUNT + " is(are) required, but found " + args.length);
         }
     }
 }
