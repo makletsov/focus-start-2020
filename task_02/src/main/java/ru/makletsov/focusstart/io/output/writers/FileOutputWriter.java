@@ -13,7 +13,7 @@ public class FileOutputWriter implements OutputWriter {
     }
 
     @Override
-    public void writeToOutput(String outputString) {
+    public void write(String outputString) {
         try {
             Files.write(filePath, List.of(outputString));
         } catch (IOException e) {

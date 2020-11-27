@@ -7,21 +7,36 @@ public abstract class Shape {
     protected static final String SQUARE_UNIT_SUFFIX = "2";
     protected static final String ANGLE_UNIT = "grad.";
 
+    protected static final String UNIT = "m";
+
+    protected double area;
+    protected double perimeter;
+
+    private final ShapeType type;
     private final String typeName;
     private final String infoPattern;
 
-    protected Shape(String unit, String type) {
-        this.typeName = type;
+    protected Shape(ShapeType type, String typeName) {
+        this.type = type;
+        this.typeName = typeName;
 
         infoPattern =
                 "Shape's type : " + STRING_PLACEHOLDER + LINE_SEPARATOR +
-                "Area         : " + FRACTIONAL_PLACEHOLDER + unit + SQUARE_UNIT_SUFFIX + LINE_SEPARATOR +
-                "Perimeter    : " + FRACTIONAL_PLACEHOLDER + unit + LINE_SEPARATOR;
+                "Area         : " + FRACTIONAL_PLACEHOLDER + UNIT + SQUARE_UNIT_SUFFIX + LINE_SEPARATOR +
+                "Perimeter    : " + FRACTIONAL_PLACEHOLDER + UNIT + LINE_SEPARATOR;
     }
 
-    protected abstract double getArea();
+    public ShapeType getType() {
+        return type;
+    }
 
-    protected abstract double getPerimeter();
+    public double getArea() {
+        return area;
+    }
+
+    public double getPerimeter() {
+        return area;
+    }
 
     public String getInfo() {
         return String.format(infoPattern, typeName, getArea(), getPerimeter());

@@ -3,34 +3,35 @@ package ru.makletsov.focusstart.shape;
 public class Circle extends Shape {
     private static final String TYPE_NAME = "Circle";
 
-    private final double area;
-    private final double perimeter;
-
     private final double radius;
     private final double diameter;
 
     private final String infoPattern;
 
-    public Circle(String unit, double radius) {
-        super(unit, TYPE_NAME);
-
-        area = Math.PI * Math.pow(radius, 2);
-        perimeter = 2 * Math.PI * radius;
+    public Circle(ShapeType type, double radius) {
+        super(type, TYPE_NAME);
 
         this.radius = radius;
-        diameter = 2 * radius;
+
+        area = calculateArea(radius);
+        perimeter = calculatePerimeter(radius);
+        diameter = calculateDiameter(radius);
 
         this.infoPattern =
-                        "Radius       : " + FRACTIONAL_PLACEHOLDER + unit + LINE_SEPARATOR +
-                        "Diameter     : " + FRACTIONAL_PLACEHOLDER + unit + LINE_SEPARATOR;
+                        "Radius       : " + FRACTIONAL_PLACEHOLDER + UNIT + LINE_SEPARATOR +
+                        "Diameter     : " + FRACTIONAL_PLACEHOLDER + UNIT + LINE_SEPARATOR;
     }
 
-    protected double getArea() {
-        return area;
+    private static double calculateArea(double radius) {
+        return Math.PI * Math.pow(radius, 2);
     }
 
-    protected double getPerimeter() {
-        return perimeter;
+    private static double calculatePerimeter(double radius) {
+        return 2 * Math.PI * radius;
+    }
+
+    private static double calculateDiameter(double radius) {
+        return 2 * radius;
     }
 
     @Override
