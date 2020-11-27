@@ -24,8 +24,6 @@ public class Consumer implements Runnable {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-
-        Files.lines("qweqwe")
     }
 
     private void consume(Resource resource) throws InterruptedException {
