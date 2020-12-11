@@ -6,13 +6,13 @@ import ru.makletsov.focusstart.shape.Shape;
 import ru.makletsov.focusstart.shape.Triangle;
 
 public class ShapeFormatter {
-    protected static final String STRING_PLACEHOLDER = "%s";
-    protected static final String FRACTIONAL_PLACEHOLDER = "%.2f ";
-    protected static final String LINE_SEPARATOR = "%n";
-    protected static final String SQUARE_UNIT_SUFFIX = "2";
-    protected static final String ANGLE_UNIT = "grad.";
+    private static final String STRING_PLACEHOLDER = "%s";
+    private static final String FRACTIONAL_PLACEHOLDER = "%.2f ";
+    private static final String LINE_SEPARATOR = "%n";
+    private static final String SQUARE_UNIT_SUFFIX = "2";
+    private static final String ANGLE_UNIT = "grad.";
 
-    protected static final String UNIT = "m";
+    private static final String UNIT = "m";
 
     private static final String CIRCLE_NAME = "Circle";
     private static final String RECTANGLE_NAME = "Rectangle";
