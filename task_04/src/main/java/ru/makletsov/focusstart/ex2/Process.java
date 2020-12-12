@@ -16,13 +16,14 @@ public class Process {
     private final int consumersTimeout;
     private final AtomicLong idAssigner;
     private final BlockingQueue<Resource> storage;
+    private final int storageCapacity;
 
     public Process(PropertiesManager manager) {
         producersCount = manager.getProducersCount();
         producersTimeout = manager.getProducersTimeout();
         consumersCount = manager.getConsumersCount();
         consumersTimeout = manager.getConsumersTimeout();
-        int storageCapacity = manager.getStorageCapacity();
+        storageCapacity = manager.getStorageCapacity();
 
         idAssigner = new AtomicLong(0);
         storage = new ArrayBlockingQueue<>(storageCapacity);
@@ -44,13 +45,12 @@ public class Process {
     private List<Thread> createProducersPool() {
         return IntStream
                 .range(0, producersCount)
-                .boxed()
-                .map(this::createProducerThread)
+                .mapToObj(this::createProducerThread)
                 .collect(Collectors.toList());
     }
 
     private Thread createProducerThread(int producerId) {
-        Producer producer = new Producer(producerId, storage, producersTimeout, idAssigner);
+        Producer producer = new Producer(producerId, storage, producersTimeout, idAssigner, storageCapacity);
 
         return new Thread(producer);
     }
@@ -58,8 +58,7 @@ public class Process {
     private List<Thread> createConsumersPool() {
         return IntStream
                 .range(0, consumersCount)
-                .boxed()
-                .map(this::createConsumerThread)
+                .mapToObj(this::createConsumerThread)
                 .collect(Collectors.toList());
     }
 

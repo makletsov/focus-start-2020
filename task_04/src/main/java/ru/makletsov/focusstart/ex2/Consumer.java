@@ -1,9 +1,11 @@
 package ru.makletsov.focusstart.ex2;
 
-import java.nio.file.Files;
 import java.util.concurrent.BlockingQueue;
+import java.util.logging.Logger;
 
 public class Consumer implements Runnable {
+    private static final Logger LOG = Logger.getLogger("ru.makletsov.focusstart.ex2.Consumer");
+
     private final int consumerId;
     private final BlockingQueue<Resource> queue;
     private final int timeout;
@@ -18,6 +20,10 @@ public class Consumer implements Runnable {
     public void run() {
         try {
             while (true) {
+                if (queue.isEmpty()) {
+                    LOG.info("[Consumer#" + consumerId + "] is waiting for resource availability...");
+                }
+
                 Resource resource = queue.take();
                 consume(resource);
             }
@@ -27,9 +33,7 @@ public class Consumer implements Runnable {
     }
 
     private void consume(Resource resource) throws InterruptedException {
-        System.out.println(TimeFormatter.getCurrentTime() +
-                "[Consumer#" + consumerId + "] take resource : " + resource.printInfo());
+        LOG.info("[Consumer#" + consumerId + "] take resource : " + resource.printInfo());
         Thread.sleep(timeout);
-        System.out.println("[Consumer#" + consumerId + "] ready for consuming new resource!");
     }
 }
