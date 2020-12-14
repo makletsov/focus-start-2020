@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class View extends JComponent {
+public class View {
     private static final String GET_RECORD_OWNER_NAME_PROMPT = "You set new record! Enter your name:";
 
     private final Markup markup;
@@ -26,7 +26,7 @@ public class View extends JComponent {
         mainMenu = new MainMenu(gameMode);
         window = new JFrame(name);
 
-        window.setIconImage(markup.getMainImage());
+        window.setIconImage(markup.getWindowIconImage());
         window.setJMenuBar(mainMenu.getMenuBar());
         window.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         window.setLocationRelativeTo(null);

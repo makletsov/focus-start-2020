@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class Game {
     private static final String REPEATED_MINES_SET_ATTEMPT_EXCEPTION_TEXT = "Mines have been already set.";
@@ -32,17 +33,17 @@ public class Game {
         markedCells = new ArrayList<>();
         playground = new Cell[gameMode.getHeight()][gameMode.getWidth()];
 
-        IntStream.range(0, height)
-                .forEach(i ->
-                        IntStream.range(0, width)
-                                .forEach(j -> playground[i][j] = new Cell(i, j)));
+        IntStream.range(0, height).forEach(i ->
+            IntStream.range(0, width).forEach(j ->
+                playground[i][j] = new Cell(i, j)
+            ));
     }
 
     public GameMode getGameMode() {
         return gameMode;
     }
 
-    public Cell changeMark(int rowIndex, int columnIndex) {
+    public Cell changeCellMark(int rowIndex, int columnIndex) {
         checkCellIndex(rowIndex, columnIndex);
 
         Cell cell = playground[rowIndex][columnIndex];
@@ -74,48 +75,63 @@ public class Game {
     public Collection<Cell> tryOpenNeighbors(int rowIndex, int columnIndex) {
         checkCellIndex(rowIndex, columnIndex);
 
-        if (!isMinesSet) {
+        if (!isMinesSet ||
+            notEnoughMarkedNeighbours(rowIndex, columnIndex)) {
             return List.of();
         }
 
-        Collection<Cell> markedNeighbours = new ArrayList<>();
-        Collection<Cell> involvedCells = new ArrayList<>();
-
-        IntStream.range(rowIndex - 1, rowIndex + 2)
-                .filter(i -> (i >= 0 && i < height))
-                .forEach(i ->
-                        IntStream.range(columnIndex - 1, columnIndex + 2)
-                                .filter(j -> (j >= 0 && j < width))
-                                .forEach(j -> {
-                                    Cell cell = playground[i][j];
-
-                                    if (cell.getState() == CellState.MARKED) {
-                                        markedNeighbours.add(cell);
-                                    } else if (cell.getState() != CellState.OPEN) {
-                                        involvedCells.add(cell);
-                                    }
-                                }));
-
-        int minedNeighboursCount = playground[rowIndex][columnIndex].getMinedNeighboursCount();
-
-        if (markedNeighbours.size() < minedNeighboursCount) {
-            return List.of();
-        }
-
-        return involvedCells.stream()
-                .flatMap(cell -> openCell(cell).stream())
-                .collect(Collectors.toList());
+        return getSurroundedCellsAsStream(rowIndex, columnIndex)
+            .filter(this::isReadyToBeOpened)
+            .flatMap(this::getNextRecursivelyOpenedAsStream)
+            .collect(Collectors.toList());
     }
 
-    private Collection<Cell> openCell(Cell cell) {
-        return openCell(cell.getRowIndex(), cell.getColumnIndex());
+    private boolean notEnoughMarkedNeighbours(int rowIndex, int columnIndex) {
+        return countMarkedNeighbours(rowIndex, columnIndex) < getMinedNeighboursCount(rowIndex, columnIndex);
+    }
+
+    private long countMarkedNeighbours(int rowIndex, int columnIndex) {
+        return getSurroundedCellsAsStream(rowIndex, columnIndex)
+            .filter(this::isMarked)
+            .count();
+    }
+
+    private boolean isMarked(Cell cell) {
+        return cell.getState() == CellState.MARKED;
+    }
+
+    private boolean isReadyToBeOpened(Cell cell) {
+        return cell.getState() != CellState.OPEN &&
+            cell.getState() != CellState.MARKED;
+    }
+
+    private Stream<Cell> getSurroundedCellsAsStream(int rowIndex, int columnIndex) {
+        return IntStream.range(rowIndex - 1, rowIndex + 2)
+            .filter(this::isCorrectRowIndex)
+            .boxed()
+            .flatMap(i ->
+                IntStream.range(columnIndex - 1, columnIndex + 2)
+                    .filter(this::isCorrectColumnIndex)
+                    .mapToObj(j -> playground[i][j]));
+    }
+
+    private boolean isCorrectRowIndex(int index) {
+        return index >= 0 && index < height;
+    }
+
+    private boolean isCorrectColumnIndex(int index) {
+        return index >= 0 && index < width;
+    }
+
+    private Stream<Cell> getNextRecursivelyOpenedAsStream(Cell cell) {
+        return openCell(cell.getRowIndex(), cell.getColumnIndex()).stream();
     }
 
     public Collection<Cell> openCell(int rowIndex, int columnIndex) {
         checkCellIndex(rowIndex, columnIndex);
 
         if (!isMinesSet) {
-            startTime = LocalDateTime.now();
+            startTime = LocalDateTime.now();           //TODO start game event
             setMines(rowIndex, columnIndex);
         }
 
@@ -123,7 +139,7 @@ public class Game {
         Cell currentCell = playground[rowIndex][columnIndex];
 
         if (currentCell.isMined()) {
-            isGameOver = true;
+            isGameOver = true;                         //TODO loose game event
             return Set.of(currentCell);
         }
 
@@ -145,15 +161,15 @@ public class Game {
         }
 
         if (isAllEmptyCellsOpen()) {
-            isGameOver = true;
+            isGameOver = true;                      //TODO win game event
             isVictory = true;
         }
 
         return involvedCells;
     }
 
-    private void setMines(int rowIndex, int columnIndex) {
-        checkCellIndex(rowIndex, columnIndex);
+    private void setMines(int firstOpenedCellRowIndex, int firstOpenedCellColumnIndex) {
+        checkCellIndex(firstOpenedCellRowIndex, firstOpenedCellColumnIndex);
 
         if (minedCells.size() > 0) {
             throw new IllegalStateException(REPEATED_MINES_SET_ATTEMPT_EXCEPTION_TEXT);
@@ -165,26 +181,25 @@ public class Game {
             int row = random.nextInt(height);
             int column = random.nextInt(width);
 
-            Cell currentCell = playground[row][column];
-            boolean canSetMine =
-                    row != rowIndex &&
-                            column != columnIndex &&
-                            !currentCell.isMined();
+            Cell nextMinedCell = playground[row][column];
 
-            if (canSetMine) {
-                currentCell.setMine();
-                minedCells.add(currentCell);
+            if (canSetMine(firstOpenedCellRowIndex, firstOpenedCellColumnIndex, nextMinedCell)) {
+                nextMinedCell.setMine();
 
-                IntStream.range(row - 1, row + 2)
-                        .filter(i -> i >= 0 && i < height)
-                        .forEach(i -> IntStream.range(column - 1, column + 2)
-                                .filter(j -> j >= 0 && j < width)
-                                .forEach(j -> playground[i][j].addMinedNeighbour()));
+                minedCells.add(nextMinedCell);
 
+                getSurroundedCellsAsStream(row, column)
+                    .forEach(Cell::addMinedNeighbour);
             }
         }
 
         isMinesSet = true;
+    }
+
+    private boolean canSetMine(int openedCellRowIndex, int openedCellColumnIndex, Cell cellToBeMined) {
+        return openedCellRowIndex != cellToBeMined.rowIndex &&
+            openedCellColumnIndex != cellToBeMined.columnIndex &&
+            !cellToBeMined.isMined();
     }
 
     private boolean isAllEmptyCellsOpen() {
@@ -192,19 +207,13 @@ public class Game {
     }
 
     private void addNotMarkedNeighbors(Queue<Cell> queue, Cell cell) {
-        int topBound = cell.getRowIndex() - 1;
-        int bottomBound = cell.getRowIndex() + 2;
-        int leftBound = cell.getColumnIndex() - 1;
-        int rightBound = cell.getColumnIndex() + 2;
+        getSurroundedCellsAsStream(cell.rowIndex, cell.columnIndex)
+            .filter(this::isClosedAndNotMarked)
+            .forEach(queue::offer);
+    }
 
-        IntStream.range(topBound, bottomBound)
-                .filter(i -> i >= 0 && i < height)
-                .forEach(i ->
-                        IntStream.range(leftBound, rightBound)
-                                .filter(j -> j >= 0 && j < width)
-                                .filter(j -> playground[i][j].getState() == CellState.DEFAULT
-                                        || playground[i][j].getState() == CellState.QUESTION_MARKED)
-                                .forEach(j -> queue.offer(playground[i][j])));
+    private boolean isClosedAndNotMarked(Cell cell) {
+        return cell.getState() == CellState.DEFAULT || cell.getState() == CellState.QUESTION_MARKED;
     }
 
     public Collection<Cell> getMarkedCells() {
@@ -235,6 +244,10 @@ public class Game {
         if (columnIndex < 0 || columnIndex >= width) {
             throw new IndexOutOfBoundsException("Column index must be between 0 and " + width);
         }
+    }
+
+    private int getMinedNeighboursCount(int rowIndex, int columnIndex) {
+        return playground[rowIndex][columnIndex].getMinedNeighboursCount();
     }
 
     public static class Cell {

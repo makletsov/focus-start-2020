@@ -1,7 +1,9 @@
 package ru.makletsov.minesweeper.presenter;
 
-import ru.makletsov.minesweeper.model.Records;
+import ru.makletsov.minesweeper.model.Record;
+
+import java.util.Collection;
 
 public interface RecordsConsumer {
-    void consumeRecords(Records records);
+    void saveRecords(Collection<Record> records);
 }

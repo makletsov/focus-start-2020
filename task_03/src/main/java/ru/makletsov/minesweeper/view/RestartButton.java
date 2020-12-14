@@ -53,6 +53,20 @@ public class RestartButton {
     }
 
     public enum State {
-        ACTIVE, DEFAULT, LOST, PRESSED, WON
+        ACTIVE("active"),
+        DEFAULT("default"),
+        LOST("lost"),
+        PRESSED("pressed"),
+        WON("won");
+
+        private final String iconName;
+
+        State(String iconName) {
+            this.iconName = iconName;
+        }
+
+        public String getIconName() {
+            return iconName;
+        }
     }
 }

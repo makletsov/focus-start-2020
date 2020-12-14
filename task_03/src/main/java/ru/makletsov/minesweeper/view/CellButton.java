@@ -93,10 +93,22 @@ public class CellButton {
     }
 
     public enum State {
-        DEFAULT, FAILED, MARKED, MINED, PRESSED, QUESTION_MARKED, WRONG_MARKED;
+        DEFAULT("default"),
+        FAILED("failed"),
+        MARKED("marked"),
+        MINED("mined"),
+        PRESSED("pressed"),
+        QUESTION_MARKED("question_marked"),
+        WRONG_MARKED("wrong_marked");
 
-        public String stringify() {
-            return super.toString().toLowerCase();
+        private final String iconName;
+
+        State(String iconName) {
+            this.iconName = iconName;
+        }
+
+        public String getIconName() {
+            return iconName;
         }
     }
 }

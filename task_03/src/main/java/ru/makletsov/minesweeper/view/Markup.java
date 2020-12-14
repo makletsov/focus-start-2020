@@ -23,7 +23,7 @@ public class Markup {
 
     private static final int INITIAL_TIMER_VALUE = 0;
 
-    private final Image mainImage;
+    private final Image windowIconImage;
     private final Map<RestartButton.State, Icon> restartButtonIcons;
     private final Map<CellButton.State, Icon> cellStateIcons;
     private final Map<Integer, Icon> minesCountIcons;
@@ -34,20 +34,20 @@ public class Markup {
     private NumberBoard timer;
     private CellButton[][] cellButtons;
 
-    public Markup(Image mainImage,
+    public Markup(Image windowIconImage,
                   Map<RestartButton.State, Image> restartButtonImages,
                   Map<CellButton.State, Image> cellStateImages,
                   Map<Integer, Image> minesCountImages,
                   List<Image> numbersImages) {
-        this.mainImage = mainImage;
+        this.windowIconImage = windowIconImage;
         this.restartButtonIcons = getRestartButtonIcons(restartButtonImages);
         this.cellStateIcons = getCellIcons(cellStateImages);
         this.minesCountIcons = getCellIcons(minesCountImages);
         this.numbersImages = numbersImages;
     }
 
-    public Image getMainImage() {
-        return mainImage;
+    public Image getWindowIconImage() {
+        return windowIconImage;
     }
 
     private Map<RestartButton.State, Icon> getRestartButtonIcons(Map<RestartButton.State, Image> imagesMap) {

@@ -1,9 +1,11 @@
 package ru.makletsov.minesweeper.model;
 
 public class Record {
-    private final GameMode gameMode;
-    private final String owner;
-    private final long duration;
+    private GameMode gameMode;
+    private String owner;
+    private long duration;
+
+    private Record() {}
 
     public Record(GameMode gameMode, String owner, long duration) {
         this.gameMode = gameMode;
@@ -15,15 +17,11 @@ public class Record {
         return owner;
     }
 
-    public long getDurationInSeconds() {
+    public long getDuration() {
         return duration;
     }
 
     public GameMode getGameMode() {
         return gameMode;
-    }
-
-    public String stringify() {
-        return gameMode + " " + owner + " " + duration;
     }
 }

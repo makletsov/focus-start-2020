@@ -1,77 +1,35 @@
 package ru.makletsov.minesweeper.model;
 
 public enum GameMode {
-    BEGINNER {
-        @Override
-        public int getHeight() {
-            return 9;
-        }
+    BEGINNER(9, 9, 10, "Beginner"),
+    AMATEUR(16, 16, 40, "Amateur"),
+    PROFESSIONAL(16, 30, 99, "Professional");
 
-        @Override
-        public int getWidth() {
-            return 9;
-        }
+    private final int height;
+    private final int width;
+    private final int minesCount;
+    private final String name;
 
-        @Override
-        public int getMinesCount() {
-            return 10;
-        }
+    GameMode(int height, int width, int minesCount, String name) {
+        this.height = height;
+        this.width = width;
+        this.minesCount = minesCount;
+        this.name = name;
+    }
 
-        @Override
-        public String getPrettyString() {
-            return "Beginner";
-        }
-    },
+    public int getHeight() {
+        return height;
+    }
 
-    AMATEUR {
-        @Override
-        public int getHeight() {
-            return 16;
-        }
+    public int getWidth() {
+        return width;
+    }
 
-        @Override
-        public int getWidth() {
-            return 16;
-        }
+    public int getMinesCount() {
+        return minesCount;
+    }
 
-        @Override
-        public int getMinesCount() {
-            return 40;
-        }
-
-        @Override
-        public String getPrettyString() {
-            return "Amateur";
-        }
-    },
-
-    PROFESSIONAL {
-        @Override
-        public int getHeight() {
-            return 16;
-        }
-
-        @Override
-        public int getWidth() {
-            return 30;
-        }
-
-        @Override
-        public int getMinesCount() {
-            return 99;
-        }
-
-        @Override
-        public String getPrettyString() {
-            return "Professional";
-        }
-    };
-
-    public abstract int getHeight();
-
-    public abstract int getWidth();
-
-    public abstract int getMinesCount();
-
-    public abstract String getPrettyString();
+    public String getName() {
+        return name;
+    }
 }

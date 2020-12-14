@@ -3,7 +3,7 @@ package ru.makletsov.minesweeper.presenter;
 import ru.makletsov.minesweeper.view.View;
 import ru.makletsov.minesweeper.model.Game;
 import ru.makletsov.minesweeper.model.GameTimer;
-import ru.makletsov.minesweeper.model.Records;
+import ru.makletsov.minesweeper.model.RecordsTable;
 
 import javax.swing.*;
 import java.awt.event.InputEvent;
@@ -25,13 +25,13 @@ public class CellButtonListener extends MouseAdapter {
     private final Game game;
     private final View view;
     private final GameTimer timer;
-    private final Records records;
+    private final RecordsTable recordsTable;
 
-    public CellButtonListener(Game game, View view, GameTimer timer, Records records) {
+    public CellButtonListener(Game game, View view, GameTimer timer, RecordsTable recordsTable) {
         this.game = game;
         this.view = view;
         this.timer = timer;
-        this.records = records;
+        this.recordsTable = recordsTable;
     }
 
     @Override
@@ -56,7 +56,7 @@ public class CellButtonListener extends MouseAdapter {
 
             repaintPlayground(lastTurnCells);
         } else if (isOnlyButton3Pressed && view.canMarkCell()) {
-            Game.Cell cell = game.changeMark(rowIndex, columnIndex);
+            Game.Cell cell = game.changeCellMark(rowIndex, columnIndex);
 
             view.changeCellMark(cell);
         }
@@ -113,8 +113,10 @@ public class CellButtonListener extends MouseAdapter {
             view.showVictory(lastTurnCells);
             Duration gameDuration = Duration.between(game.getStartTime(), LocalDateTime.now());
 
-            if (records.checkForRecord(game.getGameMode(), gameDuration)) {
-                records.setRecord(game.getGameMode(), view.getRecordOwner(), gameDuration);
+            //TODO check
+
+            if (recordsTable.checkForRecord(game.getGameMode(), gameDuration)) {
+                recordsTable.setRecord(game.getGameMode(), view.getRecordOwner(), gameDuration);
             }
         }
     }

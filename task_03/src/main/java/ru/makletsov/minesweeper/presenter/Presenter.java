@@ -2,7 +2,7 @@ package ru.makletsov.minesweeper.presenter;
 
 import ru.makletsov.minesweeper.view.*;
 import ru.makletsov.minesweeper.model.*;
-import ru.makletsov.minesweeper.model.Records;
+import ru.makletsov.minesweeper.model.RecordsTable;
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -20,7 +20,7 @@ public class Presenter {
             "Made by Makletsov Vasily." + System.lineSeparator() +
                     "Novosibirsk, 2020.";
 
-    private final Records records;
+    private final RecordsTable recordsTable;
     private final List<RecordsConsumer> recordsConsumers;
     private final GameTimer timer;
     private final View view;
@@ -30,9 +30,9 @@ public class Presenter {
     private GameMode gameMode;
     private Game game;
 
-    public Presenter(GameMode gameMode, Records records, Markup markup) {
+    public Presenter(GameMode gameMode, RecordsTable recordsTable, Markup markup) {
         this.gameMode = gameMode;
-        this.records = records;
+        this.recordsTable = recordsTable;
 
         timer = new GameTimer(TIMER_DELAY, TIMER_PERIOD);
         view = new View(WINDOW_TITLE, gameMode, markup);
@@ -51,14 +51,14 @@ public class Presenter {
         }
 
         view.addShowRecordsListener(new ShowRecordsListener());
-        view.addExitGameListeners(e -> notifyRecordsConsumers(), new ExitPerformer());
+        view.addExitGameListeners(e -> saveRecordsAndExit(), new ExitPerformer());
         view.addShowAboutListener(new AboutListener());
     }
 
     private void addTemporaryListeners() {
         view.addRestartGameListener(restartGameListener);
         view.addCellButtonListener(faceActiveListener);
-        view.addCellButtonListener(new CellButtonListener(game, view, timer, records));
+        view.addCellButtonListener(new CellButtonListener(game, view, timer, recordsTable));
     }
 
     public void startNewGame() {
@@ -83,11 +83,11 @@ public class Presenter {
         recordsConsumers.add(recordsConsumer);
     }
 
-    public void notifyRecordsConsumers() {
+    public void saveRecordsAndExit() {
         try {
-            recordsConsumers.forEach(c -> c.consumeRecords(records));
-        } catch (Exception e) {
-            //state saving attempt is failed, exit anyway
+            recordsConsumers.forEach(c -> c.saveRecords(recordsTable.getRecords()));
+        } catch (Exception ignored) {
+            //records saving attempt is failed, exit anyway
         }
 
         System.exit(0);
@@ -96,7 +96,7 @@ public class Presenter {
     private class ExitPerformer extends WindowAdapter {
         @Override
         public void windowClosed(WindowEvent e) {
-            notifyRecordsConsumers();
+            saveRecordsAndExit();
         }
     }
 
@@ -123,7 +123,7 @@ public class Presenter {
         public void actionPerformed(ActionEvent e) {
             SwingUtilities.invokeLater(() ->
                     JOptionPane.showMessageDialog(null,
-                            new RecordsTable(records).getPanel(), RECORDS_PANEL_TITLE, JOptionPane.PLAIN_MESSAGE));
+                            new RecordsPanel(recordsTable.getRecords()).getPanel(), RECORDS_PANEL_TITLE, JOptionPane.PLAIN_MESSAGE));
         }
     }
 

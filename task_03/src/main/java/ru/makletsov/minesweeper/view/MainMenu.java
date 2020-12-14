@@ -68,7 +68,7 @@ public class MainMenu {
         gameModes = new HashMap<>();
 
         for (GameMode gameMode : GameMode.values()) {
-            JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem(gameMode.getPrettyString());
+            JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem(gameMode.getName());
 
             if (gameMode.equals(currentMode)) {
                 menuItem.setSelected(true);
