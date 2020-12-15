@@ -1,171 +1,204 @@
 package ru.makletsov.minesweeper.view;
 
 import org.jetbrains.annotations.Nullable;
-import ru.makletsov.minesweeper.model.Game;
-import ru.makletsov.minesweeper.model.GameMode;
+import ru.makletsov.minesweeper.GameMode;
+import ru.makletsov.minesweeper.view.listeners.*;
 
 import javax.swing.*;
+import javax.swing.border.BevelBorder;
+import java.awt.*;
 import java.awt.event.*;
-import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.EnumSet;
 import java.util.stream.IntStream;
 
 public class View {
+    static final int MARKUP_PITCH = 4;
+    static final int GAP_FACTOR = 2;
+    static final int CONTROL_PANEL_ELEMENTS_FACTOR = 8;
+    static final int PLAYGROUND_ELEMENTS_FACTOR = 5;
+    static final int BORDER_THICKNESS = 2;
+    static final double NUMBER_PANEL_PROPORTION = 1.5;
+    static final int PLAYGROUND_ELEMENTS_SIZE = MARKUP_PITCH * PLAYGROUND_ELEMENTS_FACTOR;
+    static final int CONTROL_PANEL_HEIGHT = MARKUP_PITCH * CONTROL_PANEL_ELEMENTS_FACTOR;
+
+    static final int INITIAL_TIMER_VALUE = 0;
+
     private static final String GET_RECORD_OWNER_NAME_PROMPT = "You set new record! Enter your name:";
 
-    private final Markup markup;
-    private final MainMenu mainMenu;
-    private final JFrame window;
-
     private GameMode gameMode;
+    private final GameManipulator gameManipulator;
+    private final IconsStorage iconsStorage;
 
-    public View(String name, GameMode gameMode, Markup markup) {
+    private final JFrame window;
+    private final MainMenu mainMenu;
+    private GameControlPanel controlPanel;
+    private PlaygroundPanel playgroundPanel;
+    private final JPanel contentPanel;
+
+    public View(String name, GameMode gameMode, GameManipulator gameManipulator, IconsStorage iconsStorage) {
         this.gameMode = gameMode;
-        this.markup = markup;
+        this.gameManipulator = gameManipulator;
+        this.iconsStorage = iconsStorage;
 
-        mainMenu = new MainMenu(gameMode);
         window = new JFrame(name);
+        mainMenu = new MainMenu(gameMode);
+        contentPanel = initContentPanel();
 
-        window.setIconImage(markup.getWindowIconImage());
+        window.setIconImage(iconsStorage.getWindowIconImage());
         window.setJMenuBar(mainMenu.getMenuBar());
         window.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         window.setLocationRelativeTo(null);
         window.setResizable(false);
-        window.setContentPane(markup.getNewView(gameMode));
+        window.setContentPane(contentPanel);
+        window.addWindowListener(ExitPerformer.get(gameManipulator));
+
+        addMainMenuListeners();
+        addControlPanelListeners();
+        addPlaygroundPanelListeners();
+
         window.pack();
         window.setVisible(true);
     }
 
-    public void showDefeat(Game game, Collection<Game.Cell> lastTurnCells) {
-        showWrongMarkedCells(game.getMarkedCells().stream()
-                .filter(cell -> !cell.isMined())
-                .collect(Collectors.toList()));
-        showMinedCells(game.getMinedCells().stream()
-                .filter(cell -> cell.getState() != Game.CellState.MARKED)
-                .collect(Collectors.toList()));
-        showFailedCells(lastTurnCells.stream()
-                .filter(Game.Cell::isMined)
-                .collect(Collectors.toList()));
+    private JPanel initContentPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
 
-        SwingUtilities.invokeLater(() ->
-                markup.getRestartButton().setLost());
+        GridBagConstraints mainPanelConstraints = new GridBagConstraints();
+
+        addControlPanel(panel, mainPanelConstraints);
+        addPlaygroundPanel(panel, mainPanelConstraints);
+
+        return panel;
     }
 
-    private void showFailedCells(Collection<Game.Cell> cells) {
-        SwingUtilities.invokeLater(() ->
-                getCellButtons(cells).forEach(CellButton::setFailed));
+    private void addControlPanel(JPanel panel, GridBagConstraints mainPanelConstraints) {
+        int gap = MARKUP_PITCH * GAP_FACTOR;
+
+        mainPanelConstraints.insets = new Insets(gap, gap, 0, gap);
+        mainPanelConstraints.fill = GridBagConstraints.HORIZONTAL;
+
+        controlPanel = new GameControlPanel(gameMode, iconsStorage);
+
+        panel.add(controlPanel.getPanel(), mainPanelConstraints);
     }
 
-    private void showWrongMarkedCells(Collection<Game.Cell> cells) {
-        SwingUtilities.invokeLater(() ->
-                getCellButtons(cells).forEach(CellButton::setWrongMarked));
+    private void addPlaygroundPanel(JPanel panel, GridBagConstraints mainPanelConstraints) {
+        int gap = MARKUP_PITCH * GAP_FACTOR;
+
+        mainPanelConstraints.insets = new Insets(gap, gap, gap, gap);
+        mainPanelConstraints.gridy = 2;
+
+        playgroundPanel = new PlaygroundPanel(gameMode, iconsStorage);
+
+        panel.add(playgroundPanel.getPanel(), mainPanelConstraints);
     }
 
-    private void showMinedCells(Collection<Game.Cell> cells) {
-        SwingUtilities.invokeLater(() ->
-                getCellButtons(cells).forEach(CellButton::setMined));
+    public void setNewPlayground(GameMode gameMode) {
+        if (gameMode == this.gameMode) {
+            playgroundPanel.refresh();
+        } else {
+            this.gameMode = gameMode;
+
+            contentPanel.remove(playgroundPanel.getPanel());
+
+            GridBagConstraints mainPanelConstraints = new GridBagConstraints();
+            addPlaygroundPanel(contentPanel, mainPanelConstraints);
+            addPlaygroundPanelListeners();
+
+            window.setContentPane(contentPanel);
+            window.pack();
+        }
+
+        controlPanel.refresh(gameMode);
     }
 
-    private Collection<CellButton> getCellButtons(Collection<Game.Cell> cells) {
-        return cells.stream()
-                .map(markup::getCellButton)
-                .collect(Collectors.toList());
+    private void addMainMenuListeners() {
+        mainMenu.addNewGameListener(e -> gameManipulator.restartGame());
+        mainMenu.addRecordsTableListener(ShowRecordsListener.get(gameManipulator));
+        mainMenu.addAboutListener(AboutListener.get());
+        mainMenu.addExitListener(e -> gameManipulator.saveRecordsAndExit());
+
+
+        for (GameMode gameMode : EnumSet.allOf(GameMode.class)) {
+            mainMenu.addGameModeListener(gameMode, e -> gameManipulator.startNewGame(gameMode));
+        }
     }
 
-    public void showVictory(Collection<Game.Cell> lastTurnCells) {
-        showOpenCells(lastTurnCells);
-
-        SwingUtilities.invokeLater(() ->
-                markup.getRestartButton().setWon());
+    private void addControlPanelListeners() {
+        controlPanel.getRestartButton().getButton().addActionListener(e -> gameManipulator.restartGame());
     }
 
-    public void showOpenCells(Collection<Game.Cell> cells) {
-        SwingUtilities.invokeLater(() -> cells.forEach(this::openCell));
+    private void addPlaygroundPanelListeners() {
+        MouseListener cellButtonListener = CellButtonListener.get(this, gameManipulator);
+        MouseListener faceActiveListener = FaceActiveListener.get(this, gameManipulator);
+
+        IntStream.range(0, gameMode.getHeight()).forEach(row ->
+            IntStream.range(0, gameMode.getWidth()).forEach(column -> {
+                    playgroundPanel.getButton(row, column).addMouseListener(cellButtonListener);
+                    playgroundPanel.getButton(row, column).addMouseListener(faceActiveListener);
+                }
+            ));
+    }
+
+    public void showFailedFace() {
+        controlPanel.getRestartButton().setLost();
+    }
+
+    public void showWinFace() {
+        controlPanel.getRestartButton().setWon();
     }
 
     public void showScaredFace() {
-        markup.getRestartButton().setActive();
+        controlPanel.getRestartButton().setActive();
     }
 
     public void showNormalFace() {
-        markup.getRestartButton().setDefault();
+        controlPanel.getRestartButton().setDefault();
     }
 
-    private void openCell(Game.Cell cell) {
-        int minesCount = cell.getMinedNeighboursCount();
-        markup.getCellButton(cell).setOpen(minesCount);
+    public void showFailedCell(int rowIndex, int columnIndex) {
+        playgroundPanel.getButton(rowIndex, columnIndex).setFailed();
     }
 
-    public void changeCellMark(Game.Cell cell) {
-        CellButton button = markup.getCellButton(cell);
+    public void showWrongMarkedCell(int rowIndex, int columnIndex) {
+        playgroundPanel.getButton(rowIndex, columnIndex).setWrongMarked();
+    }
 
-        SwingUtilities.invokeLater(() -> {
-            switch (cell.getState()) {
-                case MARKED:
-                    markup.getMinesCounter().decreaseValue();
-                    button.setMarked();
-                    break;
-                case QUESTION_MARKED:
-                    markup.getMinesCounter().increaseValue();
-                    button.setQuestionMarked();
-                    break;
-                case DEFAULT:
-                    button.setDefault();
-                    break;
-            }
-        });
+    public void showMinedCell(int rowIndex, int columnIndex) {
+        playgroundPanel.getButton(rowIndex, columnIndex).setMined();
+    }
+
+    public void showOpenCell(int rowIndex, int columnIndex, int minesCount) {
+        playgroundPanel.getButton(rowIndex, columnIndex).setOpen(minesCount);
+    }
+
+    public void showMarkedCell(int rowIndex, int columnIndex) {
+        controlPanel.getMinesCounter().decreaseValue();
+        playgroundPanel.getButton(rowIndex, columnIndex).setMarked();
+    }
+
+    public void showQuestionMarkedCell(int rowIndex, int columnIndex) {
+        controlPanel.getMinesCounter().increaseValue();
+        playgroundPanel.getButton(rowIndex, columnIndex).setQuestionMarked();
+    }
+
+    public void showDefaultCell(int rowIndex, int columnIndex) {
+        playgroundPanel.getButton(rowIndex, columnIndex).setDefault();
     }
 
     public boolean canMarkCell() {
-        return markup.getMinesCounter().canDecrease();
+        return controlPanel.getMinesCounter().canDecrease();
     }
 
     public void showTime(long time) {
         if (time >= 0 && time <= 999) {
-            SwingUtilities.invokeLater(() -> markup.getTimer().setValue(time));
+            controlPanel.getTimer().setValue(time);
         }
     }
 
-    public void setNewPlayground(GameMode gameMode) {
-        this.gameMode = gameMode;
-
-        window.setContentPane(markup.getNewView(gameMode));
-        window.pack();
-    }
-
-    public void addRestartGameListener(ActionListener actionListener) {
-        mainMenu.addNewGameListener(actionListener);
-        markup.getRestartButton().getButton().addActionListener(actionListener);
-    }
-
-    public void addExitGameListeners(ActionListener actionListener, WindowListener windowListener) {
-        mainMenu.addExitListener(actionListener);
-        window.addWindowListener(windowListener);
-    }
-
-    public void addShowRecordsListener(ActionListener actionListener) {
-        mainMenu.addRecordsTableListener(actionListener);
-    }
-
-    public void addShowAboutListener(ActionListener actionListener) {
-        mainMenu.addAboutListener(actionListener);
-    }
-
-    public void addChangeModeListener(GameMode gameMode, ActionListener actionListener) {
-        mainMenu.addGameModeListener(gameMode, actionListener);
-    }
-
-    public void addCellButtonListener(MouseAdapter mouseListener) {
-        IntStream.range(0, gameMode.getHeight())
-                .forEach(row ->
-                        IntStream.range(0, gameMode.getWidth())
-                                .forEach(column ->
-                                        markup.getCellButton(row, column).addMouseListener(mouseListener)
-                                ));
-    }
-
-    public int getCellIndex(int coordinate) {
-        return markup.getCellIndex(coordinate);
+    public static int getCellIndex(int coordinate) {
+        return (coordinate - BORDER_THICKNESS) / (MARKUP_PITCH * PLAYGROUND_ELEMENTS_FACTOR);
     }
 
     @Nullable

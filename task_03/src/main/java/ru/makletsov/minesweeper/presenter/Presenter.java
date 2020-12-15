@@ -1,88 +1,72 @@
 package ru.makletsov.minesweeper.presenter;
 
+import ru.makletsov.minesweeper.GameMode;
 import ru.makletsov.minesweeper.view.*;
 import ru.makletsov.minesweeper.model.*;
 import ru.makletsov.minesweeper.model.RecordsTable;
 
-import javax.swing.*;
-import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
 
-public class Presenter {
+public class Presenter implements GameListener, GameManipulator {
     private static final long TIMER_DELAY = 1000;
     private static final long TIMER_PERIOD = 1000;
     private static final String WINDOW_TITLE = "Minesweeper";
-    private static final String RECORDS_PANEL_TITLE = "Records";
-    private static final String ABOUT_PANEL_TITLE = "About";
-    private static final String ABOUT_PANEL_MASSAGE =
-            "Made by Makletsov Vasily." + System.lineSeparator() +
-                    "Novosibirsk, 2020.";
 
     private final RecordsTable recordsTable;
     private final List<RecordsConsumer> recordsConsumers;
     private final GameTimer timer;
     private final View view;
-    private final RestartGameListener restartGameListener;
-    private final FaceActiveListener faceActiveListener;
 
     private GameMode gameMode;
     private Game game;
+    private boolean isFirstCellOpened;
 
-    public Presenter(GameMode gameMode, RecordsTable recordsTable, Markup markup) {
+    public Presenter(GameMode gameMode, RecordsTable recordsTable, IconsStorage iconsStorage) {
         this.gameMode = gameMode;
         this.recordsTable = recordsTable;
 
         timer = new GameTimer(TIMER_DELAY, TIMER_PERIOD);
-        view = new View(WINDOW_TITLE, gameMode, markup);
+        view = new View(WINDOW_TITLE, gameMode, this, iconsStorage);
         game = new Game(gameMode);
-        restartGameListener = new RestartGameListener();
-        faceActiveListener = new FaceActiveListener();
+
+        game.addGameListener(this);
         recordsConsumers = new ArrayList<>();
-
-        addTemporaryListeners();
-        addFinalListeners();
     }
 
-    private void addFinalListeners() {
-        for (GameMode mode : EnumSet.allOf(GameMode.class)) {
-            view.addChangeModeListener(mode, e -> startNewGame(mode));
+    public GameMode getGameMode() {
+        return gameMode;
+    }
+
+    @Override
+    public void restartGame() {
+        if (isFirstCellOpened) {
+            startNewGame();
         }
-
-        view.addShowRecordsListener(new ShowRecordsListener());
-        view.addExitGameListeners(e -> saveRecordsAndExit(), new ExitPerformer());
-        view.addShowAboutListener(new AboutListener());
     }
 
-    private void addTemporaryListeners() {
-        view.addRestartGameListener(restartGameListener);
-        view.addCellButtonListener(faceActiveListener);
-        view.addCellButtonListener(new CellButtonListener(game, view, timer, recordsTable));
-    }
-
-    public void startNewGame() {
-        game = new Game(gameMode);
-
-        view.setNewPlayground(gameMode);
-        timer.turnOff();
-
-        addTemporaryListeners();
-    }
-
+    @Override
     public void startNewGame(GameMode gameMode) {
         this.gameMode = gameMode;
         startNewGame();
     }
 
-    public boolean isGameStarted() {
-        return timer.isOn() || game.isGameOver();
+    private void startNewGame() {
+        game = new Game(gameMode);
+        game.addGameListener(this);
+
+        isFirstCellOpened = false;
+        timer.turnOff();
+
+        view.setNewPlayground(gameMode);
     }
 
     public void addRecordsConsumer(RecordsConsumer recordsConsumer) {
         recordsConsumers.add(recordsConsumer);
     }
 
+    @Override
     public void saveRecordsAndExit() {
         try {
             recordsConsumers.forEach(c -> c.saveRecords(recordsTable.getRecords()));
@@ -93,61 +77,107 @@ public class Presenter {
         System.exit(0);
     }
 
-    private class ExitPerformer extends WindowAdapter {
-        @Override
-        public void windowClosed(WindowEvent e) {
-            saveRecordsAndExit();
+    @Override
+    public void openCell(int rowIndex, int columnIndex) {
+        for (Cell cell : game.openCell(rowIndex, columnIndex)) {
+            int row = cell.getRowIndex();
+            int column = cell.getColumnIndex();
+            int minesAround = cell.getMinedNeighboursCount();
+
+            view.showOpenCell(row, column, minesAround);
         }
     }
 
-    private class RestartGameListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (isGameStarted()) {
-                startNewGame();
+    @Override
+    public void tryOpenNeighbors(int rowIndex, int columnIndex) {
+        for (Cell cell : game.tryOpenNeighbors(rowIndex, columnIndex)) {
+            int row = cell.getRowIndex();
+            int column = cell.getColumnIndex();
+            int minesAround = cell.getMinedNeighboursCount();
+
+            view.showOpenCell(row, column, minesAround);
+        }
+    }
+
+    @Override
+    public void changeCellMark(int rowIndex, int columnIndex) {
+        Cell cell = game.changeCellMark(rowIndex, columnIndex);
+
+        switch (cell.getState()) {
+            case MARKED:
+                view.showMarkedCell(rowIndex, columnIndex);
+                break;
+            case QUESTION_MARKED:
+                view.showQuestionMarkedCell(rowIndex, columnIndex);
+                break;
+            case DEFAULT:
+                view.showDefaultCell(rowIndex, columnIndex);
+                break;
+        }
+    }
+
+    @Override
+    public void gameStarted(Instant startTime) {
+        timer.turnOn(getViewUpdateTimerTask(startTime));
+        isFirstCellOpened = true;
+    }
+
+    private TimerTask getViewUpdateTimerTask(Instant startTime) {
+        return new TimerTask() {
+            @Override
+            public void run() {
+                Duration duration = Duration.between(startTime, Instant.now());
+                view.showTime(duration.toSeconds());
             }
-        }
+        };
     }
 
-    private static class AboutListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            SwingUtilities.invokeLater(() ->
-                    JOptionPane.showMessageDialog(null,
-                            ABOUT_PANEL_MASSAGE, ABOUT_PANEL_TITLE, JOptionPane.INFORMATION_MESSAGE));
+    @Override
+    public void gameLost(EndGameEvent endGameEvent) {
+        view.showFailedFace();
+
+        int failedCellRowIndex = endGameEvent.getFailedCell().getRowIndex();
+        int failedCellColumnIndex = endGameEvent.getFailedCell().getColumnIndex();
+
+        view.showFailedCell(failedCellRowIndex, failedCellColumnIndex);
+
+        for (Cell minedCell : endGameEvent.getMinedCells()) {
+            int row = minedCell.getRowIndex();
+            int column = minedCell.getColumnIndex();
+
+            view.showMinedCell(row, column);
         }
+
+        for (Cell wrongMarkedCell : endGameEvent.getWrongMarkedCells()) {
+            int row = wrongMarkedCell.getRowIndex();
+            int column = wrongMarkedCell.getColumnIndex();
+
+            view.showWrongMarkedCell(row, column);
+        }
+
+        timer.turnOff();
     }
 
-    public class ShowRecordsListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            SwingUtilities.invokeLater(() ->
-                    JOptionPane.showMessageDialog(null,
-                            new RecordsPanel(recordsTable.getRecords()).getPanel(), RECORDS_PANEL_TITLE, JOptionPane.PLAIN_MESSAGE));
+    @Override
+    public void gameWon(Duration gameDuration) {
+        view.showWinFace();
+
+        GameMode mode = game.getGameMode();
+
+        if (recordsTable.isRecord(mode, gameDuration)) {
+            recordsTable.setRecord(mode, view.getRecordOwner(), gameDuration);
         }
+
+        timer.turnOff();
     }
 
-    public class FaceActiveListener extends MouseAdapter {
-        private static final int BUTTON_1_DOWN_MASK = InputEvent.BUTTON1_DOWN_MASK;
-        private static final int BUTTON_2_DOWN_MASK = InputEvent.BUTTON2_DOWN_MASK;
-        private static final int BOTH_BUTTONS_MASK = InputEvent.BUTTON1_DOWN_MASK
-                | InputEvent.BUTTON3_DOWN_MASK;
+    @Override
+    public boolean isGameInProcess() {
+        return !game.isGameOver();
+    }
 
-        @Override
-        public void mousePressed(MouseEvent e) {
-            if (!game.isGameOver() &&
-                    (e.getModifiersEx() & BUTTON_1_DOWN_MASK) == BUTTON_1_DOWN_MASK ||
-                    (e.getModifiersEx() & BOTH_BUTTONS_MASK) == BOTH_BUTTONS_MASK ||
-                    (e.getModifiersEx() & BUTTON_2_DOWN_MASK) == BUTTON_2_DOWN_MASK) {
-                view.showScaredFace();
-            }
-        }
-
-        @Override
-        public void mouseClicked(MouseEvent e) {
-            if (!game.isGameOver()) {
-                view.showNormalFace();
-            }
-        }
+    @Override
+    public Collection<Record> getRecords() {
+        return recordsTable.getRecords();
     }
 }

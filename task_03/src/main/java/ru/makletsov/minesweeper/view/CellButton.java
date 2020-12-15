@@ -2,29 +2,26 @@ package ru.makletsov.minesweeper.view;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.util.Map;
+import java.awt.event.MouseListener;
 
 public class CellButton {
     private static final int MIN_MINES_COUNT = 0;
     private static final int MAX_MINES_COUNT = 8;
 
     private final JButton button;
-    private final Map<State, Icon> stateIcons;
-    private final Map<Integer, Icon> minesCountIcons;
+    private final IconsStorage iconsStorage;
 
-    public CellButton(int buttonSize, Map<State, Icon> stateIcons, Map<Integer, Icon> minesCountIcons) {
+    public CellButton(int buttonSize, IconsStorage iconsStorage) {
         if (buttonSize < 0) {
             throw new IllegalArgumentException("Size must be positive.");
         }
 
-        this.stateIcons = stateIcons;
-        this.minesCountIcons = minesCountIcons;
+        this.iconsStorage = iconsStorage;
 
-        button = new JButton(stateIcons.get(State.DEFAULT));
+        button = new JButton(getIcon(State.DEFAULT));
 
-        button.setPressedIcon(stateIcons.get(State.PRESSED));
-        button.setDisabledIcon(stateIcons.get(State.DEFAULT));
+        button.setPressedIcon(getIcon(State.PRESSED));
+        button.setDisabledIcon(getIcon(State.DEFAULT));
         button.setPreferredSize(new Dimension(buttonSize, buttonSize));
         button.setBorderPainted(false);
         button.setFocusPainted(false);
@@ -32,26 +29,34 @@ public class CellButton {
         button.setMargin(new Insets(0, 0, 0, 0));
     }
 
+    private Icon getIcon(CellButton.State state) {
+        return iconsStorage.getCellButtonIcon(state);
+    }
+
+    private Icon getIcon(int minesCount) {
+        return iconsStorage.getCellButtonIcon(minesCount);
+    }
+
     public JButton getButton() {
         return button;
     }
 
     public void setDefault() {
-        button.setIcon(stateIcons.get(State.DEFAULT));
-        button.setDisabledIcon(stateIcons.get(State.DEFAULT));
-        button.setPressedIcon(stateIcons.get(State.PRESSED));
+        button.setIcon(getIcon(State.DEFAULT));
+        button.setDisabledIcon(getIcon(State.DEFAULT));
+        button.setPressedIcon(getIcon(State.PRESSED));
     }
 
     public void setMarked() {
-        button.setIcon(stateIcons.get(State.MARKED));
-        button.setDisabledIcon(stateIcons.get(State.MARKED));
-        button.setPressedIcon(stateIcons.get(State.MARKED));
+        button.setIcon(getIcon(State.MARKED));
+        button.setDisabledIcon(getIcon(State.MARKED));
+        button.setPressedIcon(getIcon(State.MARKED));
     }
 
     public void setQuestionMarked() {
-        button.setIcon(stateIcons.get(State.QUESTION_MARKED));
-        button.setDisabledIcon(stateIcons.get(State.DEFAULT));
-        button.setPressedIcon(stateIcons.get(State.PRESSED));
+        button.setIcon(getIcon(State.QUESTION_MARKED));
+        button.setDisabledIcon(getIcon(State.DEFAULT));
+        button.setPressedIcon(getIcon(State.PRESSED));
     }
 
     public void setWrongMarked() {
@@ -67,7 +72,7 @@ public class CellButton {
     }
 
     private void setStateAndDisable(State buttonState) {
-        button.setDisabledIcon(stateIcons.get(buttonState));
+        button.setDisabledIcon(getIcon(buttonState));
         button.setEnabled(false);
     }
 
@@ -80,15 +85,11 @@ public class CellButton {
             throw new IllegalArgumentException("Given mines count is greater than " + MAX_MINES_COUNT);
         }
 
-        button.setDisabledIcon(minesCountIcons.get(minesCount));
+        button.setDisabledIcon(getIcon(minesCount));
         button.setEnabled(false);
     }
 
-    public void disable() {
-        button.setEnabled(false);
-    }
-
-    public void addMouseListener(MouseAdapter mouseListener) {
+    public void addMouseListener(MouseListener mouseListener) {
         button.addMouseListener(mouseListener);
     }
 

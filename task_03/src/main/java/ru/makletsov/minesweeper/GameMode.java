@@ -1,4 +1,4 @@
-package ru.makletsov.minesweeper.model;
+package ru.makletsov.minesweeper;
 
 public enum GameMode {
     BEGINNER(9, 9, 10, "Beginner"),

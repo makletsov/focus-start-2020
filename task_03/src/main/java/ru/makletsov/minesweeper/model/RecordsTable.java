@@ -1,6 +1,7 @@
 package ru.makletsov.minesweeper.model;
 
 import org.jetbrains.annotations.Nullable;
+import ru.makletsov.minesweeper.GameMode;
 
 import java.time.Duration;
 import java.util.*;
@@ -47,7 +48,7 @@ public class RecordsTable {
         return table.values();
     }
 
-    public boolean checkForRecord(GameMode gameMode, Duration duration) {
+    public boolean isRecord(GameMode gameMode, Duration duration) {
         return duration.toSeconds() < table.get(gameMode).getDuration();
     }
 

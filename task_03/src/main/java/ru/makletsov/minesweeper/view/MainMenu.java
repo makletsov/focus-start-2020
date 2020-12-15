@@ -1,6 +1,6 @@
 package ru.makletsov.minesweeper.view;
 
-import ru.makletsov.minesweeper.model.GameMode;
+import ru.makletsov.minesweeper.GameMode;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;

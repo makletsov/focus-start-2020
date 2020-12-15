@@ -1,6 +1,9 @@
 package ru.makletsov.minesweeper.model;
 
-import java.time.LocalDateTime;
+import ru.makletsov.minesweeper.GameMode;
+
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -16,12 +19,12 @@ public class Game {
     private final Cell[][] playground;
     private final Collection<Cell> minedCells;
     private final Collection<Cell> markedCells;
+    private final List<GameListener> gameListeners;
 
     private int openedCellsCount;
     private boolean isMinesSet;
-    private LocalDateTime startTime;
+    private Instant startTime;
     private boolean isGameOver;
-    private boolean isVictory;
 
     public Game(GameMode gameMode) {
         this.gameMode = gameMode;
@@ -33,10 +36,16 @@ public class Game {
         markedCells = new ArrayList<>();
         playground = new Cell[gameMode.getHeight()][gameMode.getWidth()];
 
-        IntStream.range(0, height).forEach(i ->
-            IntStream.range(0, width).forEach(j ->
-                playground[i][j] = new Cell(i, j)
+        gameListeners = new ArrayList<>();
+
+        IntStream.range(0, height).forEach(row ->
+            IntStream.range(0, width).forEach(column ->
+                playground[row][column] = new Cell(row, column)
             ));
+    }
+
+    public boolean isGameOver() {
+        return isGameOver;
     }
 
     public GameMode getGameMode() {
@@ -66,16 +75,13 @@ public class Game {
         return cell;
     }
 
-    public CellState getCellState(int rowIndex, int columnIndex) {
-        checkCellIndex(rowIndex, columnIndex);
-
-        return playground[rowIndex][columnIndex].getState();
-    }
-
     public Collection<Cell> tryOpenNeighbors(int rowIndex, int columnIndex) {
         checkCellIndex(rowIndex, columnIndex);
 
-        if (!isMinesSet ||
+        Cell currentCell = playground[rowIndex][columnIndex];
+
+        if (!(currentCell.getState() == CellState.OPEN) ||
+            !isMinesSet ||
             notEnoughMarkedNeighbours(rowIndex, columnIndex)) {
             return List.of();
         }
@@ -129,18 +135,29 @@ public class Game {
 
     public Collection<Cell> openCell(int rowIndex, int columnIndex) {
         checkCellIndex(rowIndex, columnIndex);
+        Cell currentCell = playground[rowIndex][columnIndex];
+
+        if (currentCell.getState() == CellState.MARKED) {
+            return List.of();
+        }
 
         if (!isMinesSet) {
-            startTime = LocalDateTime.now();           //TODO start game event
+            startTime = Instant.now();
+            gameListeners.forEach(l -> l.gameStarted(startTime));
+
             setMines(rowIndex, columnIndex);
         }
 
         Queue<Cell> queue = new ArrayDeque<>();
-        Cell currentCell = playground[rowIndex][columnIndex];
 
         if (currentCell.isMined()) {
-            isGameOver = true;                         //TODO loose game event
-            return Set.of(currentCell);
+            isGameOver = true;
+            currentCell.setState(CellState.OPEN);
+
+            EndGameEvent event = getDefeatEvent(currentCell);
+            gameListeners.forEach(l -> l.gameLost(event));
+
+            return List.of();
         }
 
         queue.offer(currentCell);
@@ -161,11 +178,27 @@ public class Game {
         }
 
         if (isAllEmptyCellsOpen()) {
-            isGameOver = true;                      //TODO win game event
-            isVictory = true;
+            isGameOver = true;
+
+            Duration gameDuration = Duration.between(startTime, Instant.now());
+            gameListeners.forEach(l -> l.gameWon(gameDuration));
         }
 
         return involvedCells;
+    }
+
+    private EndGameEvent getDefeatEvent(Cell cell) {
+        List<Cell> wrongMarkedCells = markedCells
+            .stream()
+            .filter(c -> !c.isMined())
+            .collect(Collectors.toList());
+
+        List<Cell> minedNotOpenedCells = minedCells
+            .stream()
+            .filter(this::isClosedAndNotMarked)
+            .collect(Collectors.toList());
+
+        return new EndGameEvent(cell, minedNotOpenedCells, wrongMarkedCells);
     }
 
     private void setMines(int firstOpenedCellRowIndex, int firstOpenedCellColumnIndex) {
@@ -197,8 +230,8 @@ public class Game {
     }
 
     private boolean canSetMine(int openedCellRowIndex, int openedCellColumnIndex, Cell cellToBeMined) {
-        return openedCellRowIndex != cellToBeMined.rowIndex &&
-            openedCellColumnIndex != cellToBeMined.columnIndex &&
+        return openedCellRowIndex != cellToBeMined.getRowIndex() &&
+            openedCellColumnIndex != cellToBeMined.getColumnIndex() &&
             !cellToBeMined.isMined();
     }
 
@@ -207,33 +240,13 @@ public class Game {
     }
 
     private void addNotMarkedNeighbors(Queue<Cell> queue, Cell cell) {
-        getSurroundedCellsAsStream(cell.rowIndex, cell.columnIndex)
+        getSurroundedCellsAsStream(cell.getRowIndex(), cell.getColumnIndex())
             .filter(this::isClosedAndNotMarked)
             .forEach(queue::offer);
     }
 
     private boolean isClosedAndNotMarked(Cell cell) {
         return cell.getState() == CellState.DEFAULT || cell.getState() == CellState.QUESTION_MARKED;
-    }
-
-    public Collection<Cell> getMarkedCells() {
-        return markedCells;
-    }
-
-    public Collection<Cell> getMinedCells() {
-        return minedCells;
-    }
-
-    public LocalDateTime getStartTime() {
-        return startTime;
-    }
-
-    public boolean isGameOver() {
-        return isGameOver;
-    }
-
-    public boolean isVictory() {
-        return isVictory;
     }
 
     private void checkCellIndex(int rowIndex, int columnIndex) {
@@ -250,54 +263,7 @@ public class Game {
         return playground[rowIndex][columnIndex].getMinedNeighboursCount();
     }
 
-    public static class Cell {
-        private CellState state;
-        private final int rowIndex;
-        private final int columnIndex;
-        private boolean isMined;
-        private int minesAround;
-
-        private Cell(int rowIndex, int columnIndex) {
-            this.rowIndex = rowIndex;
-            this.columnIndex = columnIndex;
-
-            state = CellState.DEFAULT;
-        }
-
-        private void setState(CellState state) {
-            this.state = state;
-        }
-
-        public CellState getState() {
-            return state;
-        }
-
-        public int getRowIndex() {
-            return rowIndex;
-        }
-
-        public int getColumnIndex() {
-            return columnIndex;
-        }
-
-        public boolean isMined() {
-            return isMined;
-        }
-
-        private void setMine() {
-            isMined = true;
-        }
-
-        public int getMinedNeighboursCount() {
-            return minesAround;
-        }
-
-        private void addMinedNeighbour() {
-            minesAround++;
-        }
-    }
-
-    public enum CellState {
-        OPEN, DEFAULT, MARKED, QUESTION_MARKED
+    public void addGameListener(GameListener gameListener) {
+        gameListeners.add(gameListener);
     }
 }

@@ -1,5 +1,7 @@
 package ru.makletsov.minesweeper.model;
 
+import ru.makletsov.minesweeper.GameMode;
+
 public class Record {
     private GameMode gameMode;
     private String owner;

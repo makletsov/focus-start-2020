@@ -2,22 +2,21 @@ package ru.makletsov.minesweeper.view;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Map;
 
 public class RestartButton {
     private final JButton button;
-    private final Map<State, Icon> icons;
+    private final IconsStorage iconsStorage;
 
-    public RestartButton(int buttonSize, Map<State, Icon> icons) {
+    public RestartButton(int buttonSize, IconsStorage iconsStorage) {
         if (buttonSize < 0) {
             throw new IllegalArgumentException("Size must be positive.");
         }
 
-        this.icons = icons;
+        this.iconsStorage = iconsStorage;
 
-        button = new JButton(icons.get(State.DEFAULT));
+        button = new JButton(iconsStorage.getRestartButtonIcon(State.DEFAULT));
 
-        button.setPressedIcon(icons.get(State.PRESSED));
+        button.setPressedIcon(iconsStorage.getRestartButtonIcon(State.PRESSED));
         button.setPreferredSize(new Dimension(buttonSize, buttonSize));
         button.setBorderPainted(false);
         button.setFocusPainted(false);
@@ -25,7 +24,7 @@ public class RestartButton {
         button.setMargin(new Insets(0, 0, 0, 0));
 
         button.addActionListener(actionEvent ->
-                button.setIcon(icons.get(State.DEFAULT)));
+                button.setIcon(iconsStorage.getRestartButtonIcon(State.DEFAULT)));
     }
 
     public void setDefault() {
@@ -49,7 +48,7 @@ public class RestartButton {
     }
 
     private void setState(State state) {
-        button.setIcon(icons.get(state));
+        button.setIcon(iconsStorage.getRestartButtonIcon(state));
     }
 
     public enum State {

@@ -4,7 +4,6 @@ import javax.swing.*;
 import javax.swing.border.AbstractBorder;
 import javax.swing.border.BevelBorder;
 import java.awt.*;
-import java.util.List;
 import java.util.stream.IntStream;
 
 public class NumberBoard extends JPanel {
@@ -12,12 +11,12 @@ public class NumberBoard extends JPanel {
     private static final int MAX_VALUE = 999;
     private static final int BORDER_TYPE = 1;
 
-    private final List<Image> images;
+    private final IconsStorage images;
 
     private int value;
     private int[] digits;
 
-    public NumberBoard(int initialValue, int height, int width, List<Image> images) {
+    public NumberBoard(int initialValue, int height, int width, IconsStorage images) {
         if (initialValue < MIN_VALUE || initialValue > MAX_VALUE) {
             throw new IllegalArgumentException("Value = " + initialValue +
                     ". Value must be between" + MIN_VALUE + " and " + MAX_VALUE + ".");
@@ -87,7 +86,7 @@ public class NumberBoard extends JPanel {
         int lowerBoundY = rectangle.height - gap * 2;
 
         IntStream.range(0, digits.length)
-                .forEach(i -> graphics.drawImage(images.get(digits[i]),
+                .forEach(i -> graphics.drawImage(images.getNumberImage(digits[i]),
                         leftBoundX + i * (gap + digitWidth),
                         upperBoundY,
                         digitWidth,

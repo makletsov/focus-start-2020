@@ -1,7 +1,4 @@
-package ru.makletsov.minesweeper.io;
-
-import ru.makletsov.minesweeper.view.CellButton;
-import ru.makletsov.minesweeper.view.RestartButton;
+package ru.makletsov.minesweeper.view;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -11,7 +8,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class ImagesLoader {
+public class ImageLoader {
     private static final String RESTART_BUTTON_IMAGES_PATH_TEMPLATE = "/images/face_button/%s.png";
     private static final String CELL_BUTTON_IMAGES_PATH_TEMPLATE = "/images/cell_button/%s.png";
     private static final String NUMBER_PANEL_IMAGES_PATH_TEMPLATE = "/images/numbers/d%s.png";
@@ -67,7 +64,7 @@ public class ImagesLoader {
         String path = String.format(pathTemplate, suffix);
 
         try {
-            return ImageIO.read(ImagesLoader.class.getResource(path));
+            return ImageIO.read(ImageLoader.class.getResource(path));
         } catch (IOException | IllegalArgumentException e) {
             throw new IllegalArgumentException(EXCEPTION_TEMPLATE + path);
         }
