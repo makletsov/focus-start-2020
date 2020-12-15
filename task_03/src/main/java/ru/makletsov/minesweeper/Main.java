@@ -26,6 +26,7 @@ public class Main {
             presenter.addRecordsConsumer(recordsManager);
         } catch (RuntimeException e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), ERROR_PANEL_TITLE, JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
         }
     }
 }

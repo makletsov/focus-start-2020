@@ -45,7 +45,6 @@ public class Game {
     }
 
     public int getRemainingMinesCount() {
-        System.out.println("Mines remaining => " + (minesCount - markedCells.size()));
         return minesCount - markedCells.size();
     }
 
@@ -80,13 +79,11 @@ public class Game {
         return cell;
     }
 
-    private Cell markCellIfPossible(Cell cell) {
+    private void markCellIfPossible(Cell cell) {
         if (getRemainingMinesCount() > 0) {
             cell.setState(CellState.MARKED);
             markedCells.add(cell);
         }
-
-        return cell;
     }
 
     public Collection<Cell> tryOpenNeighbors(int rowIndex, int columnIndex) {

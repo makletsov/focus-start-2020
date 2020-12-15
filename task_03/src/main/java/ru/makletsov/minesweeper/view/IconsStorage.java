@@ -11,14 +11,30 @@ public class IconsStorage {
     private final Map<RestartButton.State, Icon> restartButtonIcons;
     private final Map<CellButton.State, Icon> cellStateIcons;
     private final Map<Integer, Icon> minesCountIcons;
-    private final List<Image> numbersImages;
+    private final List<Icon> numbersImages;
 
     public IconsStorage(ImageLoader imagesLoader) {
         this.windowIconImage = imagesLoader.loadWindowIconImage();
         this.restartButtonIcons = getRestartButtonIcons(imagesLoader.loadRestartButtonImages());
         this.cellStateIcons = getCellIcons(imagesLoader.loadCellStateImages());
         this.minesCountIcons = getCellIcons(imagesLoader.loadMinesCountImages());
-        this.numbersImages = imagesLoader.loadNumbersImages();
+        this.numbersImages = getNumberIcons(imagesLoader.loadNumbersImages());
+    }
+
+    private List<Icon> getNumberIcons(List<Image> loadNumbersImages) {
+        return loadNumbersImages
+            .stream()
+            .map(this::getNumberIcon)
+            .collect(Collectors.toList());
+    }
+
+    private Icon getNumberIcon(Image image) {
+        return new ImageIcon(
+            image.getScaledInstance(
+                View.NUMBER_PANEL_UNIT_WIDTH,
+                View.NUMBER_PANEL_UNIT_HEIGHT,
+                Image.SCALE_SMOOTH
+            ));
     }
 
     public Image getWindowIconImage() {
@@ -37,30 +53,40 @@ public class IconsStorage {
         return restartButtonIcons.get(state);
     }
 
-    public Image getNumberImage(int number) {
+    public Icon getNumberIcon(int number) {
         return numbersImages.get(number);
     }
 
     private Map<RestartButton.State, Icon> getRestartButtonIcons(Map<RestartButton.State, Image> imagesMap) {
-        return imagesMap.entrySet().stream().collect(
-            Collectors.toMap(Map.Entry::getKey, this::getRestartButtonIcon)
-        );
+        return imagesMap
+            .entrySet()
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    this::getRestartButtonIcon
+                ));
     }
 
     private Icon getRestartButtonIcon(Map.Entry<RestartButton.State, Image> entry) {
-        int size = View.MARKUP_PITCH * View.CONTROL_PANEL_ELEMENTS_FACTOR;
+        int size = View.CONTROL_PANEL_HEIGHT;
 
         return new ImageIcon(entry.getValue().getScaledInstance(size, size, Image.SCALE_SMOOTH));
     }
 
     private <T> Map<T, Icon> getCellIcons(Map<T, Image> imagesMap) {
-        return imagesMap.entrySet().stream().collect(
-            Collectors.toMap(Map.Entry::getKey, this::getCellButtonIcon)
-        );
+        return imagesMap
+            .entrySet()
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    this::getCellButtonIcon
+                ));
     }
 
     private Icon getCellButtonIcon(Map.Entry<?, Image> entry) {
-        int size = View.MARKUP_PITCH * View.PLAYGROUND_ELEMENTS_FACTOR;
+        int size = View.PLAYGROUND_ELEMENTS_SIZE;
 
         return new ImageIcon(entry.getValue().getScaledInstance(size, size, Image.SCALE_SMOOTH));
     }

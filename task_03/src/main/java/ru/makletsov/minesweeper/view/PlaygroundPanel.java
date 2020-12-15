@@ -31,7 +31,6 @@ public class PlaygroundPanel {
     private void addNewButton(int rowIndex, int columnIndex, IconsStorage iconsStorage) {
         cellButtons[rowIndex][columnIndex] = new CellButton(View.PLAYGROUND_ELEMENTS_SIZE, iconsStorage);
 
-
         panel.add(cellButtons[rowIndex][columnIndex].getButton());
     }
 

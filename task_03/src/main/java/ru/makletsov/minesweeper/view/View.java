@@ -20,10 +20,13 @@ public class View {
     static final double NUMBER_PANEL_PROPORTION = 1.5;
     static final int PLAYGROUND_ELEMENTS_SIZE = MARKUP_PITCH * PLAYGROUND_ELEMENTS_FACTOR;
     static final int CONTROL_PANEL_HEIGHT = MARKUP_PITCH * CONTROL_PANEL_ELEMENTS_FACTOR;
-
-    static final int INITIAL_TIMER_VALUE = 0;
+    static final int NUMBER_PANEL_UNIT_HEIGHT = CONTROL_PANEL_HEIGHT - 6;
+    static final int NUMBER_PANEL_UNIT_WIDTH = CONTROL_PANEL_HEIGHT * 19 / 48;
 
     private static final String GET_RECORD_OWNER_NAME_PROMPT = "You set new record! Enter your name:";
+    private static final int MAX_TIME_VALUE = 999;
+
+    static final int INITIAL_TIMER_VALUE = 0;
 
     private GameMode gameMode;
     private final GameManipulator gameManipulator;
@@ -174,12 +177,12 @@ public class View {
     }
 
     public void showMarkedCell(int rowIndex, int columnIndex, int minesRemains) {
-        controlPanel.getMinesCounter().setValue(minesRemains);
+        controlPanel.getMinesCountPanel().setValue(minesRemains);
         playgroundPanel.getButton(rowIndex, columnIndex).setMarked();
     }
 
     public void showQuestionMarkedCell(int rowIndex, int columnIndex, int minesRemains) {
-        controlPanel.getMinesCounter().setValue(minesRemains);
+        controlPanel.getMinesCountPanel().setValue(minesRemains);
         playgroundPanel.getButton(rowIndex, columnIndex).setQuestionMarked();
     }
 
@@ -187,13 +190,9 @@ public class View {
         playgroundPanel.getButton(rowIndex, columnIndex).setDefault();
     }
 
-//    public boolean canMarkCell() {
-//        return controlPanel.getMinesCounter().canDecrease();
-//    }
-
     public void showTime(int time) {
-        if (time >= 0 && time <= 999) {
-            controlPanel.getTimer().setValue(time);
+        if (time >= 0 && time <= MAX_TIME_VALUE) {
+            controlPanel.getTimerPanel().setValue(time);
         }
     }
 

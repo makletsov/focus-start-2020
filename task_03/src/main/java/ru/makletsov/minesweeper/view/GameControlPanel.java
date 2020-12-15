@@ -8,10 +8,9 @@ import java.awt.*;
 import java.util.List;
 
 public class GameControlPanel {
-
     private final JPanel panel;
-    private final NumberBoard minesCounter;
-    private final NumberBoard timer;
+    private final DigitPanel minesCountPanel;
+    private final DigitPanel timerPanel;
     private final RestartButton restartButton;
 
     public GameControlPanel(GameMode gameMode, IconsStorage iconsStorage) {
@@ -26,14 +25,14 @@ public class GameControlPanel {
         int numberPanelWidth = (int)
             (View.CONTROL_PANEL_HEIGHT * View.NUMBER_PANEL_PROPORTION);
 
-        minesCounter = new NumberBoard(
+        minesCountPanel = new DigitPanel(
             gameMode.getMinesCount(),
             View.CONTROL_PANEL_HEIGHT,
             numberPanelWidth,
             iconsStorage
         );
 
-        timer = new NumberBoard(
+        timerPanel = new DigitPanel(
             View.INITIAL_TIMER_VALUE,
             View.CONTROL_PANEL_HEIGHT,
             numberPanelWidth,
@@ -47,7 +46,10 @@ public class GameControlPanel {
 
         int counter = 0;
 
-        for (JComponent component : List.of(minesCounter, restartButton.getButton(), timer)) {
+        List<JComponent> componentsList =
+            List.of(minesCountPanel.getPanel(), restartButton.getButton(), timerPanel.getPanel());
+
+        for (JComponent component : componentsList) {
             controlPanelConstraints.gridx = counter;
             counter++;
 
@@ -59,12 +61,12 @@ public class GameControlPanel {
         return panel;
     }
 
-    public NumberBoard getMinesCounter() {
-        return minesCounter;
+    public DigitPanel getMinesCountPanel() {
+        return minesCountPanel;
     }
 
-    public NumberBoard getTimer() {
-        return timer;
+    public DigitPanel getTimerPanel() {
+        return timerPanel;
     }
 
     public RestartButton getRestartButton() {
@@ -72,8 +74,8 @@ public class GameControlPanel {
     }
 
     public void refresh(GameMode gameMode) {
-        timer.setValue(0);
-        minesCounter.setValue(gameMode.getMinesCount());
+        timerPanel.setValue(0);
+        minesCountPanel.setValue(gameMode.getMinesCount());
         restartButton.setDefault();
     }
 }
