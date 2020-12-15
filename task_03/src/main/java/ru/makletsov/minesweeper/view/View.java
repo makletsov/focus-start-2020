@@ -130,7 +130,7 @@ public class View {
     }
 
     private void addPlaygroundPanelListeners() {
-        MouseListener cellButtonListener = CellButtonListener.get(this, gameManipulator);
+        MouseListener cellButtonListener = CellButtonListener.get(gameManipulator);
         MouseListener faceActiveListener = FaceActiveListener.get(this, gameManipulator);
 
         IntStream.range(0, gameMode.getHeight()).forEach(row ->
@@ -173,13 +173,13 @@ public class View {
         playgroundPanel.getButton(rowIndex, columnIndex).setOpen(minesCount);
     }
 
-    public void showMarkedCell(int rowIndex, int columnIndex) {
-        controlPanel.getMinesCounter().decreaseValue();
+    public void showMarkedCell(int rowIndex, int columnIndex, int minesRemains) {
+        controlPanel.getMinesCounter().setValue(minesRemains);
         playgroundPanel.getButton(rowIndex, columnIndex).setMarked();
     }
 
-    public void showQuestionMarkedCell(int rowIndex, int columnIndex) {
-        controlPanel.getMinesCounter().increaseValue();
+    public void showQuestionMarkedCell(int rowIndex, int columnIndex, int minesRemains) {
+        controlPanel.getMinesCounter().setValue(minesRemains);
         playgroundPanel.getButton(rowIndex, columnIndex).setQuestionMarked();
     }
 
@@ -187,11 +187,11 @@ public class View {
         playgroundPanel.getButton(rowIndex, columnIndex).setDefault();
     }
 
-    public boolean canMarkCell() {
-        return controlPanel.getMinesCounter().canDecrease();
-    }
+//    public boolean canMarkCell() {
+//        return controlPanel.getMinesCounter().canDecrease();
+//    }
 
-    public void showTime(long time) {
+    public void showTime(int time) {
         if (time >= 0 && time <= 999) {
             controlPanel.getTimer().setValue(time);
         }

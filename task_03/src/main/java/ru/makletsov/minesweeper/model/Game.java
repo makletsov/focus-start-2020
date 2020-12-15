@@ -44,6 +44,11 @@ public class Game {
             ));
     }
 
+    public int getRemainingMinesCount() {
+        System.out.println("Mines remaining => " + (minesCount - markedCells.size()));
+        return minesCount - markedCells.size();
+    }
+
     public boolean isGameOver() {
         return isGameOver;
     }
@@ -56,12 +61,12 @@ public class Game {
         checkCellIndex(rowIndex, columnIndex);
 
         Cell cell = playground[rowIndex][columnIndex];
+
         CellState currentState = cell.getState();
 
         switch (currentState) {
             case DEFAULT:
-                cell.setState(CellState.MARKED);
-                markedCells.add(cell);
+                markCellIfPossible(cell);
                 break;
             case MARKED:
                 cell.setState(CellState.QUESTION_MARKED);
@@ -70,6 +75,15 @@ public class Game {
             case QUESTION_MARKED:
                 cell.setState(CellState.DEFAULT);
                 break;
+        }
+
+        return cell;
+    }
+
+    private Cell markCellIfPossible(Cell cell) {
+        if (getRemainingMinesCount() > 0) {
+            cell.setState(CellState.MARKED);
+            markedCells.add(cell);
         }
 
         return cell;

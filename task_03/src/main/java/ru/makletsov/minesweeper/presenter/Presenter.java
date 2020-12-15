@@ -102,13 +102,14 @@ public class Presenter implements GameListener, GameManipulator {
     @Override
     public void changeCellMark(int rowIndex, int columnIndex) {
         Cell cell = game.changeCellMark(rowIndex, columnIndex);
+        int minesRemains = game.getRemainingMinesCount();
 
         switch (cell.getState()) {
             case MARKED:
-                view.showMarkedCell(rowIndex, columnIndex);
+                view.showMarkedCell(rowIndex, columnIndex, minesRemains);
                 break;
             case QUESTION_MARKED:
-                view.showQuestionMarkedCell(rowIndex, columnIndex);
+                view.showQuestionMarkedCell(rowIndex, columnIndex, minesRemains);
                 break;
             case DEFAULT:
                 view.showDefaultCell(rowIndex, columnIndex);
@@ -127,7 +128,7 @@ public class Presenter implements GameListener, GameManipulator {
             @Override
             public void run() {
                 Duration duration = Duration.between(startTime, Instant.now());
-                view.showTime(duration.toSeconds());
+                view.showTime((int) duration.toSeconds());
             }
         };
     }

@@ -17,7 +17,7 @@ public class CellButtonListener {
     private static final int THREE_BUTTONS_MASK = InputEvent.BUTTON1_DOWN_MASK
         | InputEvent.BUTTON2_DOWN_MASK | InputEvent.BUTTON3_DOWN_MASK;
 
-    public static MouseListener get(View view, GameManipulator gameManipulator) {
+    public static MouseListener get(GameManipulator gameManipulator) {
         return new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -32,7 +32,7 @@ public class CellButtonListener {
 
                 if (isBothButtonsOrWheelPressed) {
                     gameManipulator.tryOpenNeighbors(rowIndex, columnIndex);
-                } else if (isOnlyButton3Pressed && view.canMarkCell()) {
+                } else if (isOnlyButton3Pressed) {
                     gameManipulator.changeCellMark(rowIndex, columnIndex);
                 }
             }
