@@ -1,3 +1,5 @@
 rootProject.name = 'focus-start-2020'
+include 'task_01'
 include 'task_02'
+
 
