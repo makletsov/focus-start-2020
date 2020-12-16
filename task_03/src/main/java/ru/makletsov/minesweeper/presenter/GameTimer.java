@@ -1,4 +1,4 @@
-package ru.makletsov.minesweeper.model;
+package ru.makletsov.minesweeper.presenter;
 
 import java.util.Timer;
 import java.util.TimerTask;

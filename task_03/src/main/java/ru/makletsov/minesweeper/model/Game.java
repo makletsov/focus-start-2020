@@ -123,7 +123,8 @@ public class Game {
     }
 
     private Stream<Cell> getSurroundedCellsAsStream(int rowIndex, int columnIndex) {
-        return IntStream.range(rowIndex - 1, rowIndex + 2)
+        return IntStream
+            .range(rowIndex - 1, rowIndex + 2)
             .filter(this::isCorrectRowIndex)
             .boxed()
             .flatMap(i ->
@@ -148,31 +149,33 @@ public class Game {
         checkCellIndex(rowIndex, columnIndex);
         Cell currentCell = playground[rowIndex][columnIndex];
 
-        if (currentCell.getState() == CellState.MARKED) {
+        if (isMarked(currentCell) || isGameOver()) {
             return List.of();
         }
 
         if (!isMinesSet) {
-            startTime = Instant.now();
-            gameListeners.forEach(l -> l.gameStarted(startTime));
-
-            setMines(rowIndex, columnIndex);
+            startNewGame(rowIndex, columnIndex);
         }
 
-        Queue<Cell> queue = new ArrayDeque<>();
-
         if (currentCell.isMined()) {
-            isGameOver = true;
-            currentCell.setState(CellState.OPEN);
-
-            EndGameEvent event = getDefeatEvent(currentCell);
-            gameListeners.forEach(l -> l.gameLost(event));
-
+            endGameWithDefeat(currentCell);
             return List.of();
         }
 
-        queue.offer(currentCell);
+        Collection<Cell> involvedCells = openSurroundedCellsRecursively(currentCell);
+
+        if (isAllEmptyCellsOpen()) {
+            endGameWithVictory();
+        }
+
+        return involvedCells;
+    }
+
+    private Collection<Cell> openSurroundedCellsRecursively(Cell currentCell) {
+        Queue<Cell> queue = new ArrayDeque<>();
         Collection<Cell> involvedCells = new ArrayList<>();
+
+        queue.offer(currentCell);
 
         while (!queue.isEmpty()) {
             currentCell = queue.poll();
@@ -183,19 +186,38 @@ public class Game {
                 involvedCells.add(currentCell);
             }
 
-            if (currentCell.getMinedNeighboursCount() == 0) {
+            if (noMinesAround(currentCell)) {
                 addNotMarkedNeighbors(queue, currentCell);
             }
         }
 
-        if (isAllEmptyCellsOpen()) {
-            isGameOver = true;
-
-            Duration gameDuration = Duration.between(startTime, Instant.now());
-            gameListeners.forEach(l -> l.gameWon(gameDuration));
-        }
-
         return involvedCells;
+    }
+
+    private boolean noMinesAround(Cell cell) {
+        return cell.getMinedNeighboursCount() == 0;
+    }
+
+    private void endGameWithVictory() {
+        isGameOver = true;
+
+        Duration gameDuration = Duration.between(startTime, Instant.now());
+        gameListeners.forEach(l -> l.gameWon(gameDuration));
+    }
+
+    private void endGameWithDefeat(Cell currentCell) {
+        isGameOver = true;
+        currentCell.setState(CellState.OPEN);
+
+        EndGameEvent event = getDefeatEvent(currentCell);
+        gameListeners.forEach(l -> l.gameLost(event));
+    }
+
+    private void startNewGame(int firstOpenedCellRow, int firstOpenedCellColumn) {
+        startTime = Instant.now();
+        gameListeners.forEach(l -> l.gameStarted(startTime));
+
+        setMines(firstOpenedCellRow, firstOpenedCellColumn);
     }
 
     private EndGameEvent getDefeatEvent(Cell cell) {

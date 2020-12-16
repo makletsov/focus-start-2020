@@ -1,6 +1,6 @@
 package ru.makletsov.minesweeper.view.listeners;
 
-import ru.makletsov.minesweeper.view.GameManipulator;
+import ru.makletsov.minesweeper.view.Presenter;
 import ru.makletsov.minesweeper.view.View;
 
 import javax.swing.*;
@@ -17,7 +17,7 @@ public class CellButtonListener {
     private static final int THREE_BUTTONS_MASK = InputEvent.BUTTON1_DOWN_MASK
         | InputEvent.BUTTON2_DOWN_MASK | InputEvent.BUTTON3_DOWN_MASK;
 
-    public static MouseListener get(GameManipulator gameManipulator) {
+    public static MouseListener get(Presenter presenter) {
         return new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -31,9 +31,9 @@ public class CellButtonListener {
                     (e.getModifiersEx() & (THREE_BUTTONS_MASK)) == BUTTON_2_DOWN_MASK;
 
                 if (isBothButtonsOrWheelPressed) {
-                    gameManipulator.tryOpenNeighbors(rowIndex, columnIndex);
+                    presenter.tryOpenNeighbors(rowIndex, columnIndex);
                 } else if (isOnlyButton3Pressed) {
-                    gameManipulator.changeCellMark(rowIndex, columnIndex);
+                    presenter.changeCellMark(rowIndex, columnIndex);
                 }
             }
 
@@ -47,7 +47,7 @@ public class CellButtonListener {
                     (e.getModifiersEx() & THREE_BUTTONS_MASK) == 0;
 
                 if (isSimpleButton1Click) {
-                    gameManipulator.openCell(rowIndex, columnIndex);
+                    presenter.openCell(rowIndex, columnIndex);
                 }
             }
         };

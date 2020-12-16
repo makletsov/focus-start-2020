@@ -1,16 +1,16 @@
 package ru.makletsov.minesweeper.view.listeners;
 
-import ru.makletsov.minesweeper.view.GameManipulator;
+import ru.makletsov.minesweeper.view.Presenter;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 public class ExitPerformer {
-    public static WindowAdapter get(GameManipulator gameActionsPerformer) {
+    public static WindowAdapter get(Presenter presenter) {
         return new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
-                gameActionsPerformer.saveRecordsAndExit();
+                presenter.saveRecordsAndExit();
                 super.windowClosed(e);
             }
         };

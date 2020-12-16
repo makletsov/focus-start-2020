@@ -9,7 +9,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
-public class Presenter implements GameListener, GameManipulator {
+public class PresenterImpl implements GameListener, Presenter {
     private static final long TIMER_DELAY = 1000;
     private static final long TIMER_PERIOD = 1000;
     private static final String WINDOW_TITLE = "Minesweeper";
@@ -23,7 +23,7 @@ public class Presenter implements GameListener, GameManipulator {
     private Game game;
     private boolean isFirstCellOpened;
 
-    public Presenter(GameMode gameMode, RecordsTable recordsTable, IconsStorage iconsStorage) {
+    public PresenterImpl(GameMode gameMode, RecordsTable recordsTable, IconsStorage iconsStorage) {
         this.gameMode = gameMode;
         this.recordsTable = recordsTable;
 

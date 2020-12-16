@@ -5,7 +5,7 @@ import ru.makletsov.minesweeper.model.Record;
 
 import java.util.Collection;
 
-public interface GameManipulator {
+public interface Presenter {
     void startNewGame(GameMode gameMode);
 
     void restartGame();

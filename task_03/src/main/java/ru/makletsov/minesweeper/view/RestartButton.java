@@ -7,7 +7,7 @@ public class RestartButton {
     private final JButton button;
     private final IconsStorage iconsStorage;
 
-    public RestartButton(int buttonSize, IconsStorage iconsStorage) {
+    public RestartButton(int buttonSize, IconsStorage iconsStorage, Presenter presenter) {
         if (buttonSize < 0) {
             throw new IllegalArgumentException("Size must be positive.");
         }
@@ -23,6 +23,7 @@ public class RestartButton {
         button.setContentAreaFilled(false);
         button.setMargin(new Insets(0, 0, 0, 0));
 
+        button.addActionListener(e -> presenter.restartGame());
         button.addActionListener(actionEvent ->
                 button.setIcon(iconsStorage.getRestartButtonIcon(State.DEFAULT)));
     }

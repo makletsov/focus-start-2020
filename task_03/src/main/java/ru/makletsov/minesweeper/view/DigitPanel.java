@@ -36,8 +36,6 @@ public class DigitPanel {
         numberBoardConstraints = new GridBagConstraints();
         numberBoardConstraints.insets = new Insets(0, HORIZONTAL_INSET, 0, HORIZONTAL_INSET);
 
-        int[] digits = splitByDigits(initialValue);
-
         digitLabels = IntStream
             .rangeClosed(0, 2)
             .mapToObj(this::addLabelToPanel)

@@ -7,6 +7,7 @@ public class Record {
     private String owner;
     private long duration;
 
+    //need for json serialization
     private Record() {}
 
     public Record(GameMode gameMode, String owner, long duration) {

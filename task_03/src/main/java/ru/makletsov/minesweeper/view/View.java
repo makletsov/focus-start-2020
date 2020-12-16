@@ -8,7 +8,6 @@ import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.EnumSet;
 import java.util.stream.IntStream;
 
 public class View {
@@ -29,36 +28,31 @@ public class View {
     static final int INITIAL_TIMER_VALUE = 0;
 
     private GameMode gameMode;
-    private final GameManipulator gameManipulator;
+    private final Presenter presenter;
     private final IconsStorage iconsStorage;
 
     private final JFrame window;
-    private final MainMenu mainMenu;
     private GameControlPanel controlPanel;
     private PlaygroundPanel playgroundPanel;
     private final JPanel contentPanel;
 
-    public View(String name, GameMode gameMode, GameManipulator gameManipulator, IconsStorage iconsStorage) {
+    public View(String name, GameMode gameMode, Presenter presenter, IconsStorage iconsStorage) {
         this.gameMode = gameMode;
-        this.gameManipulator = gameManipulator;
+        this.presenter = presenter;
         this.iconsStorage = iconsStorage;
 
         window = new JFrame(name);
-        mainMenu = new MainMenu(gameMode);
         contentPanel = initContentPanel();
 
-        window.setIconImage(iconsStorage.getWindowIconImage());
+        MainMenu mainMenu = new MainMenu(gameMode, presenter);
         window.setJMenuBar(mainMenu.getMenuBar());
+
+        window.setIconImage(iconsStorage.getWindowIconImage());
         window.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         window.setLocationRelativeTo(null);
         window.setResizable(false);
         window.setContentPane(contentPanel);
-        window.addWindowListener(ExitPerformer.get(gameManipulator));
-
-        addMainMenuListeners();
-        addControlPanelListeners();
-        addPlaygroundPanelListeners();
-
+        window.addWindowListener(ExitPerformer.get(presenter));
         window.pack();
         window.setVisible(true);
     }
@@ -81,7 +75,7 @@ public class View {
         mainPanelConstraints.insets = new Insets(gap, gap, 0, gap);
         mainPanelConstraints.fill = GridBagConstraints.HORIZONTAL;
 
-        controlPanel = new GameControlPanel(gameMode, iconsStorage);
+        controlPanel = new GameControlPanel(gameMode, iconsStorage, presenter);
 
         panel.add(controlPanel.getPanel(), mainPanelConstraints);
     }
@@ -93,6 +87,8 @@ public class View {
         mainPanelConstraints.gridy = 2;
 
         playgroundPanel = new PlaygroundPanel(gameMode, iconsStorage);
+
+        addPlaygroundPanelListeners();
 
         panel.add(playgroundPanel.getPanel(), mainPanelConstraints);
     }
@@ -116,25 +112,9 @@ public class View {
         controlPanel.refresh(gameMode);
     }
 
-    private void addMainMenuListeners() {
-        mainMenu.addNewGameListener(e -> gameManipulator.restartGame());
-        mainMenu.addRecordsTableListener(ShowRecordsListener.get(gameManipulator));
-        mainMenu.addAboutListener(AboutListener.get());
-        mainMenu.addExitListener(e -> gameManipulator.saveRecordsAndExit());
-
-
-        for (GameMode gameMode : EnumSet.allOf(GameMode.class)) {
-            mainMenu.addGameModeListener(gameMode, e -> gameManipulator.startNewGame(gameMode));
-        }
-    }
-
-    private void addControlPanelListeners() {
-        controlPanel.getRestartButton().getButton().addActionListener(e -> gameManipulator.restartGame());
-    }
-
     private void addPlaygroundPanelListeners() {
-        MouseListener cellButtonListener = CellButtonListener.get(gameManipulator);
-        MouseListener faceActiveListener = FaceActiveListener.get(this, gameManipulator);
+        MouseListener cellButtonListener = CellButtonListener.get(presenter);
+        MouseListener faceActiveListener = FaceActiveListener.get(this, presenter);
 
         IntStream.range(0, gameMode.getHeight()).forEach(row ->
             IntStream.range(0, gameMode.getWidth()).forEach(column -> {

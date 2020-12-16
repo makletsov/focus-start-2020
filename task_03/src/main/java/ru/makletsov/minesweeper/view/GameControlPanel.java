@@ -13,7 +13,7 @@ public class GameControlPanel {
     private final DigitPanel timerPanel;
     private final RestartButton restartButton;
 
-    public GameControlPanel(GameMode gameMode, IconsStorage iconsStorage) {
+    public GameControlPanel(GameMode gameMode, IconsStorage iconsStorage, Presenter presenter) {
         panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
 
@@ -41,7 +41,8 @@ public class GameControlPanel {
 
         restartButton = new RestartButton(
             View.CONTROL_PANEL_HEIGHT,
-            iconsStorage
+            iconsStorage,
+            presenter
         );
 
         int counter = 0;

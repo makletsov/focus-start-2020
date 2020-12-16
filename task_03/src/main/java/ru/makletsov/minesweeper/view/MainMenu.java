@@ -1,53 +1,25 @@
 package ru.makletsov.minesweeper.view;
 
 import ru.makletsov.minesweeper.GameMode;
+import ru.makletsov.minesweeper.view.listeners.AboutListener;
+import ru.makletsov.minesweeper.view.listeners.ShowRecordsListener;
 
 import javax.swing.*;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.HashMap;
-import java.util.Map;
 
 public class MainMenu {
-    private final GameMode currentMode;
+    private final GameMode gameMode;
+    private final Presenter presenter;
     private final JMenuBar menuBar;
 
-    private JMenuItem newGame;
-
-    private Map<GameMode, JRadioButtonMenuItem> gameModes;
-
-    private JMenuItem records;
-    private JMenuItem exit;
-
-    private JMenuItem about;
-
-    public MainMenu(GameMode gameMode) {
-        currentMode = gameMode;
+    public MainMenu(GameMode gameMode, Presenter presenter) {
+        this.gameMode = gameMode;
+        this.presenter = presenter;
 
         menuBar = new JMenuBar();
 
         menuBar.add(initGameMenu());
         menuBar.add(initHelpMenu());
-    }
-
-    public void addNewGameListener(ActionListener newGameListener) {
-        addListener(newGame, newGameListener);
-    }
-
-    public void addGameModeListener(GameMode gameMode, ActionListener gameModeListener) {
-        addListener(gameModes.get(gameMode), gameModeListener);
-    }
-
-    public void addRecordsTableListener(ActionListener actionListener) {
-        addListener(records, actionListener);
-    }
-
-    public void addExitListener(ActionListener actionListener) {
-        addListener(exit, actionListener);
-    }
-
-    public void addAboutListener(ActionListener actionListener) {
-        addListener(about, actionListener);
     }
 
     public JMenuBar getMenuBar() {
@@ -57,34 +29,37 @@ public class MainMenu {
     private JMenu initGameMenu() {
         JMenu game = new JMenu("Game");
 
-        newGame = new JMenuItem("New Game");
+        JMenuItem newGame = new JMenuItem("New Game");
 
         newGame.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0));
+        newGame.addActionListener(e -> presenter.restartGame());
 
         game.add(newGame);
         game.add(new JSeparator());
 
         ButtonGroup gameModesButtonGroup = new ButtonGroup();
-        gameModes = new HashMap<>();
 
         for (GameMode gameMode : GameMode.values()) {
             JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem(gameMode.getName());
 
-            if (gameMode.equals(currentMode)) {
+            if (gameMode.equals(this.gameMode)) {
                 menuItem.setSelected(true);
             }
 
-            gameModes.put(gameMode, menuItem);
+            menuItem.addActionListener(e -> presenter.startNewGame(gameMode));
+
             gameModesButtonGroup.add(menuItem);
             game.add(menuItem);
         }
 
-        records = new JMenuItem("Records");
+        JMenuItem records = new JMenuItem("Records");
+        records.addActionListener(ShowRecordsListener.get(presenter));
 
         game.add(new JSeparator());
         game.add(records);
 
-        exit = new JMenuItem("Exit");
+        JMenuItem exit = new JMenuItem("Exit");
+        exit.addActionListener(e -> presenter.saveRecordsAndExit());
 
         game.add(new JSeparator());
         game.add(exit);
@@ -95,14 +70,11 @@ public class MainMenu {
     private JMenu initHelpMenu() {
         JMenu help = new JMenu("Help");
 
-        about = new JMenuItem("About");
+        JMenuItem about = new JMenuItem("About");
+        about.addActionListener(AboutListener.get());
 
         help.add(about);
 
         return help;
-    }
-
-    private void addListener(JMenuItem menuItem, ActionListener listener) {
-        menuItem.addActionListener(listener);
     }
 }

@@ -4,7 +4,7 @@ import ru.makletsov.minesweeper.view.ImageLoader;
 import ru.makletsov.minesweeper.presenter.RecordsRepository;
 import ru.makletsov.minesweeper.model.Record;
 import ru.makletsov.minesweeper.model.RecordsTable;
-import ru.makletsov.minesweeper.presenter.Presenter;
+import ru.makletsov.minesweeper.presenter.PresenterImpl;
 import ru.makletsov.minesweeper.view.IconsStorage;
 
 import javax.swing.*;
@@ -22,7 +22,7 @@ public class Main {
             RecordsTable recordsTable = new RecordsTable(loadedRecords);
             IconsStorage iconsStorage = new IconsStorage(imagesLoader);
 
-            Presenter presenter = new Presenter(GameMode.BEGINNER, recordsTable, iconsStorage);
+            PresenterImpl presenter = new PresenterImpl(GameMode.BEGINNER, recordsTable, iconsStorage);
             presenter.addRecordsConsumer(recordsManager);
         } catch (RuntimeException e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), ERROR_PANEL_TITLE, JOptionPane.ERROR_MESSAGE);
