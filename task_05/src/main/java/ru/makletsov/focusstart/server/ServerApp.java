@@ -9,7 +9,7 @@ import java.util.Properties;
 
 public class ServerApp {
     private static final String PROPERTIES_FILE_NAME = "conf.properties";
-    private static final Logger LOG = LoggerFactory.getLogger(ChatServer.class.getSimpleName());
+    private static final Logger LOG = LoggerFactory.getLogger(ServerApp.class.getSimpleName());
 
     public static void main(String[] args) {
         try {

@@ -1,49 +1,50 @@
 package ru.makletsov.focusstart.client;
 
-import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.net.Socket;
+import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ExecutorService;
 
 public class ChatClient {
+	private static final Logger LOG = LoggerFactory.getLogger(ChatClient.class.getSimpleName());
 
-	private static final ThreadFactory factory = Executors.defaultThreadFactory();
+	private final String hostname;
+	private final int port;
+	private final PrintStream userOutput;
+	private final InputStream userInput;
+	private final ExecutorService executor;
 
-	private String hostname;
-	private int port;
 	private String userName;
 
-	public ChatClient(String hostname, int port) {
+	public ChatClient(String hostname, int port, InputStream userInput, PrintStream userOutput) {
 		this.hostname = hostname;
 		this.port = port;
+
+		this.userOutput = userOutput;
+		this.userInput = userInput;
+
+		executor = Executors.newFixedThreadPool(2);
 	}
 
 	public void execute() {
 		try {
-			Socket socket = new Socket(hostname, port);
+            Socket socket = new Socket(hostname, port);
 
-			System.out.println("Connected to the chat server");
+			userOutput.println("Connected to the chat server.");
 
-			Thread writerThread = factory.newThread(new ServerWriter(socket, this));
-			Thread readerThread = factory.newThread(new ServerReader(socket, this));
-
-			writerThread.start();
-			readerThread.start();
+			executor.execute(new ServerWriter(socket, userInput, userOutput));
+			executor.execute(new ServerReader(socket, userOutput));
 		} catch (UnknownHostException ex) {
-			System.out.println("Server not found: " + ex.getMessage());
+		    userOutput.println("Server not found: " + hostname + ":" + port);
+			LOG.error("Server not found: ", ex);
 		} catch (IOException ex) {
-			System.out.println("I/O Error: " + ex.getMessage());
-		} catch (IllegalStateException ex) {
-			System.out.println(ex.getMessage());
+			LOG.error("I/O Error: ", ex);
 		}
-	}
-
-	void setUserName(String userName) {
-		this.userName = userName;
-	}
-
-	String getUserName() {
-		return this.userName;
 	}
 }

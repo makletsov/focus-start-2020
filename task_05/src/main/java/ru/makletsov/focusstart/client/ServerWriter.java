@@ -1,48 +1,53 @@
 package ru.makletsov.focusstart.client;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
 
 public class ServerWriter implements Runnable {
-    private PrintWriter writer;
-    private final Socket socket;
-    private final ChatClient client;
+    private static final Logger LOG = LoggerFactory.getLogger(ServerWriter.class.getSimpleName());
 
-    public ServerWriter(Socket socket, ChatClient client) {
+    private final PrintWriter writer;
+    private final Socket socket;
+    private final InputStream userInput;
+    private final PrintStream userOutput;
+
+    public ServerWriter(Socket socket, InputStream userInput, PrintStream userOutput) {
         this.socket = socket;
-        this.client = client;
+        this.userInput = userInput;
+        this.userOutput = userOutput;
 
         try {
             OutputStream output = socket.getOutputStream();
             writer = new PrintWriter(output, true);
         } catch (IOException ex) {
-            System.out.println("Error getting output stream: " + ex.getMessage());
-            ex.printStackTrace();
+            LOG.error("Error getting output stream: ", ex);
+            throw new RuntimeException(ex);
         }
     }
 
     public void run() {
         try (socket) {
-            Scanner scanner = new Scanner(System.in);
+            Scanner scanner = new Scanner(userInput);
 
-            System.out.println("Enter your name: ");
+            userOutput.println("Enter your name: ");
             String userName = scanner.nextLine();
-            client.setUserName(userName);
+
             writer.println(userName);
+            userOutput.println("Start writing!)");
 
             String text = "";
 
             do {
-                if (scanner.hasNextLine()) {
-                    text = scanner.nextLine().trim();
-                    writer.println(text);
-                }
+                text = scanner.nextLine().trim();
+                writer.println(text);
             } while (!text.equals("quit"));
-        } catch (IOException ex) {
-            System.out.println("Error writing to server: " + ex.getMessage());
+        } catch (Exception ex) {
+            userOutput.println("Error writing to server: " + ex.getMessage());
+            LOG.error("Error writing to server: ", ex);
         }
     }
 }

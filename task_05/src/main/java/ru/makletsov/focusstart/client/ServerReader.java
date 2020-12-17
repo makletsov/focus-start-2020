@@ -1,27 +1,29 @@
 package ru.makletsov.focusstart.client;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
 
 public class ServerReader implements Runnable {
-    private BufferedReader reader;
-    private final Socket socket;
-    private final ChatClient client;
+    private static final Logger LOG = LoggerFactory.getLogger(ServerReader.class.getSimpleName());
 
-    public ServerReader(Socket socket, ChatClient client) {
-        this.socket = socket;
-        this.client = client;
+    private final BufferedReader reader;
+    private final PrintStream userOutput;
+
+    public ServerReader(Socket socket, PrintStream userOutput) {
+        this.userOutput = userOutput;
 
         try {
             InputStream input = socket.getInputStream();
             reader = new BufferedReader(new InputStreamReader(input));
         } catch (IOException ex) {
-            System.out.println("Error getting input stream: " + ex.getMessage());
-            ex.printStackTrace();
+            userOutput.println("Reading from server is unavailable.");
+            LOG.error("Error getting input stream: " + ex.getMessage());
+
+            throw new RuntimeException(ex);
         }
     }
 
@@ -31,18 +33,19 @@ public class ServerReader implements Runnable {
                 String response = reader.readLine();
 
                 if (response == null) {
-                    System.out.println("Disconnected...");
+                    System.out.println("Connection has been aborted. Try again.");
                     return;
                 }
 
-                System.out.println(response);
+                userOutput.println(response);
             } catch (SocketException ex) {
-                System.out.println("Socket has been closed: " + ex.getMessage());
+                userOutput.println("Socket has been closed exceptionally.");
+                LOG.error("Socket has been closed: ", ex);
                 return;
             } catch (IOException ex) {
-                System.out.println("Error reading from server: " + ex.getMessage());
-                ex.printStackTrace();
-                break;
+                userOutput.println("Cannot reading information from server.");
+                LOG.error("Error reading from server: ", ex);
+                return;
             }
         }
     }

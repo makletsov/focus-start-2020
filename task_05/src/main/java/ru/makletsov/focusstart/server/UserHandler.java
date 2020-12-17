@@ -55,7 +55,7 @@ public class UserHandler implements Runnable {
 
             utilizeUserConnection();
         } catch (Exception ex) {
-            tryUtilizeWithMessageBroadcast();
+            tryUtilizeUserHandlerExceptionally();
             LOG.error("Error in user handler for user " + userName, ex);
         }
     }
@@ -68,7 +68,7 @@ public class UserHandler implements Runnable {
         writer = new PrintWriter(output, true);
     }
 
-    private void tryUtilizeWithMessageBroadcast() {
+    private void tryUtilizeUserHandlerExceptionally() {
         try {
             utilizeUserConnection();
         } catch (Exception ex) {
