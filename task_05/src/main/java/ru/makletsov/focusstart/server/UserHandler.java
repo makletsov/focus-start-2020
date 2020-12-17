@@ -55,6 +55,7 @@ public class UserHandler implements Runnable {
 
             utilizeUserConnection();
         } catch (Exception ex) {
+            tryUtilizeWithMessageBroadcast();
             LOG.error("Error in user handler for user " + userName, ex);
         }
     }
@@ -65,6 +66,15 @@ public class UserHandler implements Runnable {
 
         OutputStream output = socket.getOutputStream();
         writer = new PrintWriter(output, true);
+    }
+
+    private void tryUtilizeWithMessageBroadcast() {
+        try {
+            utilizeUserConnection();
+        } catch (Exception ex) {
+            server.utilizeHandler(userName, this);
+            LOG.error("User handler utilizing failed: ", ex);
+        }
     }
 
     private void utilizeUserConnection() {
