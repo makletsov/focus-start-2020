@@ -1,4 +1,4 @@
-package ru.makletsov.focusstart.s.client;
+package ru.makletsov.focusstart.client;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -40,7 +40,7 @@ public class ServerWriter implements Runnable {
                     text = scanner.nextLine().trim();
                     writer.println(text);
                 }
-            } while (!text.equals("quit") && !Thread.currentThread().isInterrupted());
+            } while (!text.equals("quit"));
         } catch (IOException ex) {
             System.out.println("Error writing to server: " + ex.getMessage());
         }

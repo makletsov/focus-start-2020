@@ -1,4 +1,7 @@
-package ru.makletsov.focusstart.s.server;
+package ru.makletsov.focusstart.server;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -9,16 +12,18 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 public class ChatServer {
-    private final int port;
+    private static final Logger LOG = LoggerFactory.getLogger(ChatServer.class.getSimpleName());
 
-    private final Set<String> userNames;
+    private final int port;
+    private final UserRepository userRepository;
+
     private final Set<UserHandler> userHandlers;
     private final ThreadFactory threadFactory;
 
-    public ChatServer(int port) {
+    public ChatServer(int port, UserRepository userRepository) {
         this.port = port;
+        this.userRepository = userRepository;
 
-        userNames = ConcurrentHashMap.newKeySet();
         userHandlers = ConcurrentHashMap.newKeySet();
         threadFactory = Executors.defaultThreadFactory();
     }
@@ -26,10 +31,12 @@ public class ChatServer {
     public void execute() {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
 
-            System.out.println("Chat Server is listening on port " + port + "... ");
+            LOG.info("Chat Server is listening on port " + port + "... ");
 
+            //noinspection InfiniteLoopStatement
             while (true) {
                 Socket socket = serverSocket.accept();
+                LOG.trace("New user has been connected.");
 
                 UserHandler newHandler = new UserHandler(socket, this);
                 userHandlers.add(newHandler);
@@ -38,8 +45,7 @@ public class ChatServer {
             }
 
         } catch (IOException ex) {
-            System.out.printf("Internal server error: %s", ex.getMessage());
-            //ex.printStackTrace();  //TODO logger???
+            LOG.error("Internal server error: ", ex);
         }
     }
 
@@ -51,22 +57,15 @@ public class ChatServer {
         }
     }
 
-    void addUserName(String userName) {
-        userNames.add(userName);
-    }
+    void utilizeHandler(String userName, UserHandler userHandler) {
+        boolean removed = userRepository.removeUser(userName);
 
-    void removeUser(String userName, UserHandler aUser) {
-        boolean removed = userNames.remove(userName);
         if (removed) {
-            userHandlers.remove(aUser);
+            userHandlers.remove(userHandler);
         }
     }
 
-    Set<String> getUserNames() {
-        return this.userNames;
-    }
-
-    boolean hasUsers() {
-        return !this.userNames.isEmpty();
+    UserRepository getUserRepository() {
+        return userRepository;
     }
 }

@@ -1,4 +1,4 @@
-package ru.makletsov.focusstart.s.client;
+package ru.makletsov.focusstart.client;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,6 +29,12 @@ public class ServerReader implements Runnable {
         while (true) {
             try {
                 String response = reader.readLine();
+
+                if (response == null) {
+                    System.out.println("Disconnected...");
+                    return;
+                }
+
                 System.out.println(response);
             } catch (SocketException ex) {
                 System.out.println("Socket has been closed: " + ex.getMessage());

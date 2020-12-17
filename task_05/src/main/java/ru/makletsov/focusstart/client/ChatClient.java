@@ -1,4 +1,4 @@
-package ru.makletsov.focusstart.s.client;
+package ru.makletsov.focusstart.client;
 
 import java.io.IOException;
 import java.net.Socket;

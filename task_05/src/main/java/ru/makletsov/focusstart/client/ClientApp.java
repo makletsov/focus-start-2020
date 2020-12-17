@@ -1,8 +1,11 @@
-package ru.makletsov.focusstart.s.client;
+package ru.makletsov.focusstart.client;
 
-public class Main {
+public class ClientApp {
     public static void main(String[] args) {
-        if (args.length < 2) return;
+        if (args.length < 2) {
+            System.out.println("No args");
+            return;
+        }
 
         String hostname = args[0];
         int port = Integer.parseInt(args[1]);
