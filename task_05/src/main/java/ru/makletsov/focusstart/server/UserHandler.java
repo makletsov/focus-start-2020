@@ -11,6 +11,7 @@ import java.time.format.FormatStyle;
 
 public class UserHandler implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(UserHandler.class.getSimpleName());
+    private static final String MESSAGE_TEMPLATE = "%s [%s]: %s";
 
     private String userName;
 
@@ -18,6 +19,7 @@ public class UserHandler implements Runnable {
     private final ChatServer server;
     private final DateTimeFormatter dateFormat;
     private final UserRepository userRepository;
+    private final StringBuilder stringBuilder;
 
     private PrintWriter writer;
     private BufferedReader reader;
@@ -28,6 +30,7 @@ public class UserHandler implements Runnable {
         this.userRepository = server.getUserRepository();
 
         dateFormat = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT);
+        stringBuilder = new StringBuilder();
     }
 
     public void run() {
@@ -67,7 +70,7 @@ public class UserHandler implements Runnable {
     private void utilizeUserConnection() {
         server.utilizeHandler(userName, this);
 
-        String serverMessage = userName + " has quitted.";
+        String serverMessage = userName + " has quited.";
 
         LOG.trace(serverMessage);
         server.broadcast(serverMessage, this);
@@ -99,7 +102,11 @@ public class UserHandler implements Runnable {
     }
 
     private String formatMessage(String clientMessage) {
-        return getDate() + " [" + userName + "]: " + clientMessage;
+        stringBuilder.setLength(0);
+
+        stringBuilder.append(String.format(MESSAGE_TEMPLATE, getDate(), userName, clientMessage));
+
+        return stringBuilder.toString();
     }
 
 
