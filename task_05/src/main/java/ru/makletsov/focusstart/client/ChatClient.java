@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadFactory;
 
 public class ChatClient {
 	private static final Logger LOG = LoggerFactory.getLogger(ChatClient.class.getSimpleName());
@@ -18,7 +19,7 @@ public class ChatClient {
 	private final int port;
 	private final PrintStream userOutput;
 	private final InputStream userInput;
-	private final ExecutorService executor;
+	private final ThreadFactory executor;
 
 	private String userName;
 
@@ -29,7 +30,7 @@ public class ChatClient {
 		this.userOutput = userOutput;
 		this.userInput = userInput;
 
-		executor = Executors.newFixedThreadPool(2);
+		executor = Executors.defaultThreadFactory();
 	}
 
 	public void execute() {
@@ -38,8 +39,11 @@ public class ChatClient {
 
 			userOutput.println("Connected to the chat server.");
 
-			executor.execute(new ServerWriter(socket, userInput, userOutput));
-			executor.execute(new ServerReader(socket, userOutput));
+			Thread writerThread = executor.newThread(new ServerWriter(socket, userInput, userOutput));
+			Thread readerThread = executor.newThread(new ServerReader(socket, userOutput));
+
+			writerThread.start();
+			readerThread.start();
 		} catch (UnknownHostException ex) {
 		    userOutput.println("Server not found: " + hostname + ":" + port);
 			LOG.error("Server not found: ", ex);

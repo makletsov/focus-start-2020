@@ -21,4 +21,8 @@ public class UserRepository {
     boolean hasUsers() {
         return !this.userNames.isEmpty();
     }
+
+    boolean hasUser(String userName) {
+        return getUserNames().contains(userName);
+    }
 }

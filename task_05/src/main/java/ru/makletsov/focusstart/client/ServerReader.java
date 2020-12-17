@@ -33,14 +33,13 @@ public class ServerReader implements Runnable {
                 String response = reader.readLine();
 
                 if (response == null) {
-                    System.out.println("Connection has been aborted. Try again.");
+                    userOutput.println("Connection has been aborted. Try again.");
                     return;
                 }
 
                 userOutput.println(response);
             } catch (SocketException ex) {
-                userOutput.println("Socket has been closed exceptionally.");
-                LOG.error("Socket has been closed: ", ex);
+                userOutput.println("Socket has been closed.");
                 return;
             } catch (IOException ex) {
                 userOutput.println("Cannot reading information from server.");

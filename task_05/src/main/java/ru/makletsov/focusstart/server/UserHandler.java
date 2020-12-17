@@ -41,7 +41,7 @@ public class UserHandler implements Runnable {
 
             userName = reader.readLine();
 
-            if (isSuchUserExists()) {
+            if (userRepository.hasUser(userName)) {
                 writer.println("User with this name is already exist! Try with another name.");
                 LOG.info("Failed to connect with user " + userName + ". Repeatable user name.");
                 return;
@@ -55,7 +55,7 @@ public class UserHandler implements Runnable {
 
             utilizeUserConnection();
         } catch (Exception ex) {
-            tryUtilizeUserHandlerExceptionally();
+            tryUtilizeUserWithBroadcast();
             LOG.error("Error in user handler for user " + userName, ex);
         }
     }
@@ -68,7 +68,7 @@ public class UserHandler implements Runnable {
         writer = new PrintWriter(output, true);
     }
 
-    private void tryUtilizeUserHandlerExceptionally() {
+    private void tryUtilizeUserWithBroadcast() {
         try {
             utilizeUserConnection();
         } catch (Exception ex) {
@@ -105,10 +105,6 @@ public class UserHandler implements Runnable {
 
         LOG.info(serverMessage);
         server.broadcast(serverMessage, this);
-    }
-
-    private boolean isSuchUserExists() {
-        return userRepository.getUserNames().contains(userName);
     }
 
     private String formatMessage(String clientMessage) {
